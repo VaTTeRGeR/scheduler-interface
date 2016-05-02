@@ -1,12 +1,12 @@
-package speinterface.util;
+package de.dortmund.tu.wmsi.routine.timing;
 
-public class TimerExecuteInterval implements UPRExecutionTimer {
+public class RoutineTimingInterval implements RoutineTiming {
 
 	private long tnow = Long.MIN_VALUE;
 	private long tstart = Long.MIN_VALUE;
 	private long ti = 0;
 	
-	public TimerExecuteInterval(long timeStart, long timeInterval) {
+	public RoutineTimingInterval(long timeStart, long timeInterval) {
 		tstart = timeStart;
 		ti = timeInterval;
 	}

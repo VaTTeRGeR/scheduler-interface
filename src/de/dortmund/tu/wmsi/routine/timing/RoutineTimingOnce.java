@@ -1,10 +1,10 @@
-package speinterface.util;
+package de.dortmund.tu.wmsi.routine.timing;
 
-public class TimerExecuteOnce implements UPRExecutionTimer {
+public class RoutineTimingOnce implements RoutineTiming {
 
 	private long t = Long.MIN_VALUE;
 	
-	public TimerExecuteOnce(long time) {
+	public RoutineTimingOnce(long time) {
 		t = time;
 	}
 	
