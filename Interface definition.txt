@@ -1,41 +1,41 @@
 Interface
-	Generator API
+	#Generator API
 		setGenerator(Generator gen) : void
 		register(Listener listener) : void
 		register(UPR upr) : void
 		submitJob(Job job) : void
 	
-	Scheduler API - 
+	#Scheduler API - 
 		setScheduler(Scheduler sch) : void
 		submitEvent(Event e) : void
 
 	Logging API
 		TODO
 Komponenten
-	Job - Repraesentiert einen Job
+	#Job - Repraesentiert einen Job
+		getJobId() : int
 		getSubmitTime() : long
 		getRunDuration() : long
-		getResourcesNeeded() : long
+		getRequestedResources() : long
 	
-	Scheduler - wird von Scheduler implementiert
+	#Scheduler - wird von Scheduler implementiert
 		init() : void
 		simulateUntil(long t) : long
-		submitJob(Job job) : void
+		enqueueJob(Job job) : void
 	
-	Generator - wird von Generator implementiert
+	#Generator - wird von Generator implementiert
 		init() : void
 	
-	Event - Superklasse fÃ¼r Events
-		getJobId() : int
+	#Event - Superklasse für Events
 		getTime() : long
 		
-	Listener - wird von Klassen implementiert die auf Job Events reagieren kÃ¶nnen
-		jobFinished(Event):void
+	#JobFinishedListener - wird von Klassen implementiert die 
+		jobFinished(Job) : void
 	
-	User Programmeable Routine - Superklasse aller User-Routinen
+	#User Programmeable Routine - Superklasse aller User-Routinen
 		process(long time) : void
 		setTiming(Timing) : void
 		getTiming() : Timing
 		
-	Timing - wird implementiert um verschiedene AusfÃ¼hrungsrhytmen zu erzeugen, z.B. tÃ¤glich, einmalig, dynamisch bei Aufruf, etc
+	#Timing - wird implementiert um verschiedene Ausführungsrhytmen zu erzeugen, z.B. täglich, einmalig, dynamisch bei Aufruf, etc
 		getNextTime() : long
