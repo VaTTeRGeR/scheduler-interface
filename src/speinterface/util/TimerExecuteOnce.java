@@ -8,12 +8,10 @@ public class TimerExecuteOnce implements UPRExecutionTimer {
 		t = time;
 	}
 	
-	@Override
 	public long getNextTime() {
 		return t;
 	}
 
-	@Override
 	public void update(long time) {}
 
 }

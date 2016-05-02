@@ -11,14 +11,12 @@ public class TimerExecuteInterval implements UPRExecutionTimer {
 		ti = timeInterval;
 	}
 	
-	@Override
 	public long getNextTime() {
 		if(tnow>tstart)
 			return tstart + ti * (long)Math.ceil(((double)(tnow-tstart))/((double)ti));
 		else return tstart;
 	}
 
-	@Override
 	public void update(long time) {
 		tnow = time;
 	}
