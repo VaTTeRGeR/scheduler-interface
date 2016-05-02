@@ -1,4 +1,4 @@
-package speinterface.util;
+package de.dortmund.tu.wmsi.event;
 
 public class Event {
 	private long t = 0;
