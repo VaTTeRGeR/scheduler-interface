@@ -1,4 +1,4 @@
-package de.irf.it.rmg.research.workload.usermodel;
+package de.dortmund.tu.wmsi.dynamicUserModel;
 
 import de.irf.it.rmg.core.teikoku.Bootstrap;
 import de.irf.it.rmg.core.teikoku.common.Reservation;

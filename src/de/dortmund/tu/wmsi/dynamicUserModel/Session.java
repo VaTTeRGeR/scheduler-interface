@@ -1,4 +1,4 @@
-package de.irf.it.rmg.research.workload.usermodel;
+package de.dortmund.tu.wmsi.dynamicUserModel;
 
 import java.util.LinkedList;
 import java.util.List;

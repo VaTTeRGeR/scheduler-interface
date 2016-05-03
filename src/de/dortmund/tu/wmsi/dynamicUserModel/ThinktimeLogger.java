@@ -1,4 +1,4 @@
-package de.irf.it.rmg.research.workload.usermodel;
+package de.dortmund.tu.wmsi.dynamicUserModel;
 
 import de.irf.it.rmg.core.teikoku.runtime.events.JobStartedEvent;
 import de.irf.it.rmg.core.teikoku.workload.swf.SWFJob;

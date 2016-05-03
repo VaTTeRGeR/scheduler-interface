@@ -1,4 +1,4 @@
-package de.irf.it.rmg.research.workload.usermodel;
+package de.dortmund.tu.wmsi.dynamicUserModel;
 
 
 import java.util.Arrays;
@@ -9,24 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import de.dortmund.tu.wmsi.model.WorkloadModel;
 
-import de.irf.it.rmg.core.teikoku.RuntimeEnvironment;
-import de.irf.it.rmg.core.teikoku.exceptions.WorkloadException;
-import de.irf.it.rmg.core.teikoku.job.Job;
-import de.irf.it.rmg.research.workload.util.JobLengthComparator;
-import de.irf.it.rmg.sim.kuiga.annotations.InvalidAnnotationException;
-import de.irf.it.rmg.util.Initializable;
-import de.irf.it.rmg.util.exceptions.InitializationException;
-import de.irf.it.rmg.core.teikoku.runtime.configuration.spring.PropertyHelper;
-import de.irf.it.rmg.core.teikoku.runtime.events.JobStartedEvent;
-import de.irf.it.rmg.core.teikoku.submission.Executor;
-import de.irf.it.rmg.core.teikoku.workload.WorkloadFilter;
-import de.irf.it.rmg.core.teikoku.workload.WorkloadSource;
-import de.irf.it.rmg.core.teikoku.workload.swf.SWFJob;
-
-public class UserModel implements WorkloadSource, Initializable {
+public class UserModel implements WorkloadModel {
 	
 	private PriorityQueue<SWFJob> jobQueue;
 	
@@ -62,6 +47,18 @@ public class UserModel implements WorkloadSource, Initializable {
 		this.userList = new LinkedList<User>();
 	}
 
+	@Override
+	public void init() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public void loadModelConfig(String path) {
+		
+	}
 	
 	
 	public void initialize() throws InitializationException {
@@ -183,4 +180,6 @@ public class UserModel implements WorkloadSource, Initializable {
 	public void setExecutor(Executor executor) {
 		this.executor = executor;
 	}
+
+	
 }

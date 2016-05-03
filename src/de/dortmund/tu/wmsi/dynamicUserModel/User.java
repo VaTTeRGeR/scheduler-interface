@@ -1,4 +1,4 @@
-package de.irf.it.rmg.research.workload.usermodel;
+package de.dortmund.tu.wmsi.dynamicUserModel;
 
 import java.util.Comparator;
 
@@ -9,14 +9,6 @@ import java.util.PriorityQueue;
 import org.apache.commons.math3.distribution.LogisticDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
-import de.irf.it.rmg.core.teikoku.exceptions.WorkloadException;
-import de.irf.it.rmg.core.teikoku.job.Job;
-import de.irf.it.rmg.core.teikoku.runtime.events.JobStartedEvent;
-import de.irf.it.rmg.core.teikoku.workload.swf.SWFJob;
-import de.irf.it.rmg.research.workload.util.JobLengthComparator;
-import de.irf.it.rmg.util.exceptions.InitializationException;
-import de.irf.it.rmg.util.time.Clock;
-import de.irf.it.rmg.util.time.TimeHelper;
 
 public class User {
 
