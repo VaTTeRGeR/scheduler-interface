@@ -34,29 +34,32 @@ public class SimulationInterface {
 	private long t_end;
 
 	private final long[] times = new long[3];
-	private final int END = 0;
-	private final int ROUTINE = 1;
-	private final int SUBMIT = 2;
+	private final int	END = 0, ROUTINE = 1, SUBMIT = 2;
 
 	public SimulationInterface() {
 		instance = this;
 	}
 
 	// ** INTERFACE PUBLIC METHODS **//
-
+	
 	public static SimulationInterface instance() {
 		if (instance == null)
 			throw new NullPointerException("Create an instance of Interface before calling the static access method.");
 		else
 			return instance;
 	}
+	
+	public void setSimulationBeginTime(long begin) {
+		t_begin = begin;
+	}
+
+	public void setSimulationEndTime(long end) {
+		t_end = end;
+	}
 
 	public void simulate(String configPath) {
 		scheduler.init(configPath); // TODO real config path
 		model.init(configPath); // TODO real config path
-
-		t_begin = 0;
-		t_end = Long.MAX_VALUE;
 
 		t_now = t_begin;
 		t_next = t_end;
@@ -65,7 +68,7 @@ public class SimulationInterface {
 
 		while (t_now < t_end) { // simulate until t_now >= t_end
 			logNewLine();
-			log("new iteration.");
+			log("new iteration");
 			WorkloadModelRoutine nextRoutine = getNextRoutine();
 			Job nextJob = jobs.peek();
 
@@ -77,15 +80,15 @@ public class SimulationInterface {
 
 			switch (winner) {
 			case 0:
-				log("t_end is the next step target.");
+				log("t_end is the next step target");
 				break;
 
 			case 1:
-				log("a routine execution is the next step target.");
+				log("a routine execution is the next step target");
 				break;
 
 			case 2:
-				log("a job submit is the next step target.");
+				log("a job submit is the next step target");
 				break;
 
 			default:
@@ -99,10 +102,12 @@ public class SimulationInterface {
 			if(t_next > t_now) {
 				log("trying to simulate scheduler until "+t_next);
 				t_scheduler = scheduler.simulateUntil(t_next);
+				log("scheduler got simulated until "+t_scheduler);
+				t_now = t_scheduler;
 			} else if(t_next < t_now) {
 				throw new IllegalStateException("t_now cannot be ahead of t_next");
 			} else {
-				log("skipping scheduler simulation. no time advance.");
+				log("skipping scheduler simulation. no time advance");
 			}
 			
 			if(t_scheduler < t_next || !events.isEmpty()) { // Event dazwischen
@@ -115,23 +120,22 @@ public class SimulationInterface {
 					}
 				}
 			} else if(t_scheduler == t_next) { // Kein Event, durchgelaufen
-				log("no scheduler event.");
+				log("no scheduler event");
 				if(winner == ROUTINE) {
-					log("executing routine.");
+					log("executing routine");
 					executeRoutine(nextRoutine);
 				} else if(winner == SUBMIT) {
-					log("passing job "+jobs.peek().getJobId()+" to scheduler.");
+					log("passing job "+jobs.peek().getJobId()+" to scheduler");
 					scheduler.enqueueJob(jobs.poll());
 				} else {
-					log("no routine or submit.");
+					log("no routine or submit");
 				}
 			} else {
 				throw new IllegalStateException("Scheduler cannot simulate ahead of t_next");
 			}
-			t_now = t_scheduler;
 		}
 		logNewLine();
-		log("simulation finished.");
+		log("simulation finished");
 	}
 
 	// ** INTERFACE INNER METHODS **//

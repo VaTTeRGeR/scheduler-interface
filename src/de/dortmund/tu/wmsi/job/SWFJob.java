@@ -4,8 +4,8 @@ public class SWFJob extends Job {
 	
 	long[] values;
 
-	public SWFJob(long startTime, long runDuration, long resourcesRequested) {
-		values = new long[]{startTime, runDuration, resourcesRequested};
+	public SWFJob(long submitTime, long runDuration, long resourcesRequested) {
+		values = new long[]{submitTime, runDuration, resourcesRequested};
 	}
 	
 	@Override
