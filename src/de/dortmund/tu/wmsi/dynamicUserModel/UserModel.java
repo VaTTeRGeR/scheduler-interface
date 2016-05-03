@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 
+import de.dortmund.tu.wmsi.job.Job;
+import de.dortmund.tu.wmsi.job.SWFJob;
 import de.dortmund.tu.wmsi.model.WorkloadModel;
 
 public class UserModel implements WorkloadModel {
@@ -17,8 +19,6 @@ public class UserModel implements WorkloadModel {
 	
 	private List<User> userList;
 	private String userNames;
-	
-	private Executor executor;
 	
 	private int numberOfSubmittedJobs;
 	private int currentJobID;
@@ -61,29 +61,9 @@ public class UserModel implements WorkloadModel {
 	}
 	
 	
-	public void initialize() throws InitializationException {
-		System.out.println("SYSTEM : " + this);
-		this.initialized = true;
-		List<String> singleUserNames = Arrays.asList(this.userNames.split(","));
-		for (String userName : singleUserNames) {
-			PropertyHelper.setActualUserName(userName.trim());
-			ApplicationContext ctx = new ClassPathXmlApplicationContext(new String[]
-							{ "file:" + RuntimeEnvironment.SITE_CONFIG_XML });
-			User user = ctx.getBean("user", de.irf.it.rmg.research.workload.usermodel.User.class);
-			this.userList.add(user);	
-		}
-	}
-
-	@Override
-	public void initialize(WorkloadFilter[] filters)
-			throws InitializationException {
-		// TODO Auto-generated method stub
-		
-	}
 
 
-	@Override
-	public Job inspectNextJob() throws WorkloadException {
+	public Job inspectNextJob() {
 		if (numberOfSubmittedJobs < MAX_NUMBER_JOBS) {
 			//Initial dummy job
 			if (numberOfSubmittedJobs == 0) {
@@ -98,8 +78,8 @@ public class UserModel implements WorkloadModel {
 	}
 
 
-	@Override
-	public Job fetchNextJob() throws WorkloadException {
+
+	public Job fetchNextJob() {
 		if (numberOfSubmittedJobs < MAX_NUMBER_JOBS && !jobQueue.isEmpty()) {
 			numberOfSubmittedJobs++;
 			return jobQueue.poll();
@@ -171,14 +151,6 @@ public class UserModel implements WorkloadModel {
 	
 	public PriorityQueue<SWFJob> getJobQueue() {
 		return jobQueue;
-	}
-
-	public Executor getExecutor() {
-		return executor;
-	}
-		
-	public void setExecutor(Executor executor) {
-		this.executor = executor;
 	}
 
 	

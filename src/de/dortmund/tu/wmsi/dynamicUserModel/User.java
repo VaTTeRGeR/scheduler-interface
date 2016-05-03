@@ -9,6 +9,8 @@ import java.util.PriorityQueue;
 import org.apache.commons.math3.distribution.LogisticDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
+import de.dortmund.tu.wmsi.job.SWFJob;
+
 
 public class User {
 
@@ -66,7 +68,7 @@ public class User {
 	private boolean initialized;
 	
 	
-	public void initialize() throws InitializationException {
+	public void initialize() {
 		System.out.println("[WL] Initzializing user ID: " + userId);
 
 		Comparator<SWFJob> comparator = new JobLengthComparator();
@@ -153,11 +155,11 @@ public class User {
 	}
 
 
-	public Job inspectNextJob() throws WorkloadException {
+	public Job inspectNextJob() {
 		return jobQueue.peek();
 	}
 
-	public Job fetchNextJob() throws WorkloadException {
+	public Job fetchNextJob() {
 		if (!jobQueue.isEmpty()) {
 			return jobQueue.poll();
 		}
