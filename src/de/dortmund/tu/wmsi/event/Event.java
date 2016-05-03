@@ -1,5 +1,6 @@
 package de.dortmund.tu.wmsi.event;
 
+@Deprecated
 public class Event {
 	private long t = 0;
 	

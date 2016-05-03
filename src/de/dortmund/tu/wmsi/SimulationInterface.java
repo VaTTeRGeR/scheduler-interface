@@ -1,10 +1,7 @@
 package de.dortmund.tu.wmsi;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Queue;
 
 import de.dortmund.tu.wmsi.event.Event;
 import de.dortmund.tu.wmsi.job.Job;
@@ -15,9 +12,9 @@ import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.EventTimeComparator;
 import de.dortmund.tu.wmsi.util.JobSubmitComparator;
 
-public class Interface {
+public class SimulationInterface {
 
-	private static Interface instance = null;
+	private static SimulationInterface instance = null;
 
 	private WorkloadModel model = null;
 	private Scheduler scheduler = null;
@@ -36,18 +33,18 @@ public class Interface {
 	private long t_begin;
 	private long t_end;
 
-	private final long[] times = new long[4];
+	private final long[] times = new long[3];
 	private final int END = 0;
 	private final int ROUTINE = 1;
 	private final int SUBMIT = 2;
 
-	public Interface() {
+	public SimulationInterface() {
 		instance = this;
 	}
 
 	// ** INTERFACE PUBLIC METHODS **//
 
-	public static Interface instance() {
+	public static SimulationInterface instance() {
 		if (instance == null)
 			throw new NullPointerException("Create an instance of Interface before calling the static access method.");
 		else
@@ -64,45 +61,90 @@ public class Interface {
 		t_now = t_begin;
 		t_next = t_end;
 		
-		while (t_now < t_end) { // simulate until the t_end reached
+		log("simulation from "+t_begin+" to "+t_end);
+
+		while (t_now < t_end) { // simulate until t_now >= t_end
+			logNewLine();
+			log("new iteration.");
 			WorkloadModelRoutine nextRoutine = getNextRoutine();
 			Job nextJob = jobs.peek();
 
 			times[END] = t_end;
-			times[ROUTINE] = nextRoutine.getNextExecutionTime(t_now);
+			times[ROUTINE] = nextRoutine != null ? nextRoutine.getNextExecutionTime(t_now) : Long.MAX_VALUE;
 			times[SUBMIT] = nextJob != null ? nextJob.getSubmitTime() : Long.MAX_VALUE;
 
-			int winner = getIndexOfSmallest(times);
+			int winner = getIndexOfSmallestLong(times);
 
-			t_next = times[winner]; // t_next = min{t_end,t_routine,t_submit}
+			switch (winner) {
+			case 0:
+				log("t_end is the next step target.");
+				break;
+
+			case 1:
+				log("a routine execution is the next step target.");
+				break;
+
+			case 2:
+				log("a job submit is the next step target.");
+				break;
+
+			default:
+				throw new IllegalArgumentException("winner has to be in [0, 1, 2]");
+			}
+
+			t_next = times[winner]; // t_next = firstMin{t_end,t_routine,t_submit}
 			
 			long t_scheduler = t_next;
+			
 			if(t_next > t_now) {
+				log("trying to simulate scheduler until "+t_next);
 				t_scheduler = scheduler.simulateUntil(t_next);
+			} else if(t_next < t_now) {
+				throw new IllegalStateException("t_now cannot be ahead of t_next");
+			} else {
+				log("skipping scheduler simulation. no time advance.");
 			}
+			
 			if(t_scheduler < t_next || !events.isEmpty()) { // Event dazwischen
+				log("scheduler event.");
 				Event event = null;
 				while((event = events.poll()) != null) {
 					for (int j = 0; j < listeners.size(); j++) {
+						log("contacting listener "+j);
 						listeners.get(j).jobFinished(event);
 					}
 				}
 			} else if(t_scheduler == t_next) { // Kein Event, durchgelaufen
+				log("no scheduler event.");
 				if(winner == ROUTINE) {
+					log("executing routine.");
 					executeRoutine(nextRoutine);
 				} else if(winner == SUBMIT) {
+					log("passing job "+jobs.peek().getJobId()+" to scheduler.");
 					scheduler.enqueueJob(jobs.poll());
+				} else {
+					log("no routine or submit.");
 				}
 			} else {
 				throw new IllegalStateException("Scheduler cannot simulate ahead of t_next");
 			}
-			//TODO hier weiter machen :D
+			t_now = t_scheduler;
 		}
+		logNewLine();
+		log("simulation finished.");
 	}
 
 	// ** INTERFACE INNER METHODS **//
+	
+	private void log(String message) {
+		System.out.println(new StringBuilder("t_now = ").append(t_now).append("  -  ").append(message).toString());
+	}
 
-	private int getIndexOfSmallest(long[] array) {
+	private void logNewLine() {
+		System.out.println();
+	}
+
+	private int getIndexOfSmallestLong(long[] array) {
 		int minIndex = 0;
 		for (int i = 1; i < array.length; i++) {
 			if (array[i] < array[minIndex]) {

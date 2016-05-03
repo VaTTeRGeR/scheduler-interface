@@ -1,5 +1,6 @@
 package de.dortmund.tu.wmsi.event;
 
+@Deprecated
 public class JobFinishedEvent extends Event {
 
 	private int jobId;
