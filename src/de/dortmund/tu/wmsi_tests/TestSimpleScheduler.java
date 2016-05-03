@@ -1,5 +1,8 @@
 package de.dortmund.tu.wmsi_tests;
 
+import java.util.Collections;
+import java.util.LinkedList;
+
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.Event;
 import de.dortmund.tu.wmsi.job.Job;
@@ -17,21 +20,21 @@ public class TestSimpleScheduler {
 			
 			@Override
 			public void init(String configPath) {
-				SimulationInterface.instance().submitJob(new SWFJob(500, 20, 0));;
+				SimulationInterface.instance().submitJob(new SWFJob(50, 900, 0)); // long job 50 -> 950
+				SimulationInterface.instance().submitJob(new SWFJob(500, 20, 0)); // short job 500 -> 520
 			}
 		});
 
 		simface.setScheduler(new Scheduler() {
 			
-			private long jobFinish = Long.MAX_VALUE;
+			private LinkedList<Long> queue = new LinkedList<Long>();
 			
 			@Override
 			public long simulateUntil(long t) {
 				long t_sim = t;
 				
-				if(jobFinish < t) {
-					t_sim = jobFinish;
-					jobFinish = t;
+				if(!queue.isEmpty() && queue.peek() < t) {
+					t_sim = queue.poll();
 					SimulationInterface.instance().submitEvent(new Event(t_sim));
 					return t_sim;
 				} else {
@@ -46,15 +49,20 @@ public class TestSimpleScheduler {
 			
 			@Override
 			public void enqueueJob(Job job) {
-				jobFinish = job.getSubmitTime()+job.getRunDuration();
+				queue.push(job.getSubmitTime()+job.getRunDuration());
+				Collections.sort(queue);
 			}
 		});
 		
 		simface.register(new JobFinishedListener() {
-			
+			boolean submitDone = false;
 			@Override
 			public void jobFinished(Event event) {
 				System.out.println("Listener: job finished at " + event.getTime());
+				if(!submitDone) {
+					SimulationInterface.instance().submitJob(new SWFJob(event.getTime()+10, 50, 0));
+					submitDone = true;
+				}
 			}
 		});
 		
