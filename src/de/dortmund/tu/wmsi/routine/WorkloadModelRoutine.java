@@ -15,10 +15,11 @@ public abstract class WorkloadModelRoutine {
 		this.timer = timer;
 	}
 	
-	public long getNextExecutionTime(){
-		if(timer != null)
-			return timer.getNextTime();
-		else
+	public long getNextExecutionTime(long time){
+		if(timer != null){
+			return timer.getNextTime(time);
+		} else {
 			return Long.MIN_VALUE;
+		}
 	}
 }

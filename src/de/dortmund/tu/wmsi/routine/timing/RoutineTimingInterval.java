@@ -11,14 +11,10 @@ public class RoutineTimingInterval implements RoutineTiming {
 		ti = timeInterval;
 	}
 	
-	public long getNextTime() {
+	public long getNextTime(long time) {
+		tnow = time;
 		if(tnow>tstart)
 			return tstart + ti * (long)Math.ceil(((double)(tnow-tstart))/((double)ti));
 		else return tstart;
 	}
-
-	public void update(long time) {
-		tnow = time;
-	}
-
 }

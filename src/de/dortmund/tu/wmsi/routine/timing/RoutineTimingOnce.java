@@ -8,10 +8,7 @@ public class RoutineTimingOnce implements RoutineTiming {
 		t = time;
 	}
 	
-	public long getNextTime() {
+	public long getNextTime(long time) {
 		return t;
 	}
-
-	public void update(long time) {}
-
 }
