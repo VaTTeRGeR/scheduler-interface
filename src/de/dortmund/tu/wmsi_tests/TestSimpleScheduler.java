@@ -35,7 +35,7 @@ public class TestSimpleScheduler {
 				
 				if(!queue.isEmpty() && queue.peek() < t) {
 					t_sim = queue.poll();
-					SimulationInterface.instance().submitEvent(new JobFinishedEvent(t_sim, 0));
+					SimulationInterface.instance().submitEvent(new JobFinishedEvent(t_sim, null));
 					return t_sim;
 				} else {
 					return t;

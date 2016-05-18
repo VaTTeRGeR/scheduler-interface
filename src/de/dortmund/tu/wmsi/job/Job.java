@@ -1,8 +1,8 @@
 package de.dortmund.tu.wmsi.job;
 
 public abstract class Job {
-	private static int idcounter = 0;
 
+	private static int idcounter = 0;
 	private int id = -1;
 	
 	public Job() {

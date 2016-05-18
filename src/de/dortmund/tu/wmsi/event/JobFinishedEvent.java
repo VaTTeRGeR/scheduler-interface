@@ -1,16 +1,18 @@
 package de.dortmund.tu.wmsi.event;
 
+import de.dortmund.tu.wmsi.job.Job;
+
 public class JobFinishedEvent  {
 
-	private int jobId;
+	private Job job;
 	private long time;
-	public JobFinishedEvent(long time, int jobId) {
+	public JobFinishedEvent(long time, Job job) {
 		this.time = time;
-		this.jobId = jobId;
+		this.job = job;
 	}
 	
-	public int getJobId() {
-		return jobId;
+	public Job getJob() {
+		return job;
 	}
 
 	public long getTime() {
