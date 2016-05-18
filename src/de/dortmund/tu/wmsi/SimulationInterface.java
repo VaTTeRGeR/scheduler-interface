@@ -3,7 +3,7 @@ package de.dortmund.tu.wmsi;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import de.dortmund.tu.wmsi.event.Event;
+import de.dortmund.tu.wmsi.event.JobFinishedEvent;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.listener.JobFinishedListener;
 import de.dortmund.tu.wmsi.model.WorkloadModel;
@@ -22,7 +22,7 @@ public class SimulationInterface {
 	private final ArrayList<JobFinishedListener> listeners = new ArrayList<JobFinishedListener>();
 	private final ArrayList<WorkloadModelRoutine> routines = new ArrayList<WorkloadModelRoutine>();
 	private final LinkedList<Job> jobs = new LinkedList<Job>();
-	private final LinkedList<Event> events = new LinkedList<Event>();
+	private final LinkedList<JobFinishedEvent> events = new LinkedList<JobFinishedEvent>();
 
 	private final JobSubmitComparator jobComparator = new JobSubmitComparator();
 	private final EventTimeComparator eventComparator = new EventTimeComparator();
@@ -36,7 +36,7 @@ public class SimulationInterface {
 	private final long[] times = new long[3];
 	private final int	END = 0, ROUTINE = 1, SUBMIT = 2;
 
-	public SimulationInterface() {
+	private SimulationInterface() {
 		instance = this;
 	}
 
@@ -44,9 +44,16 @@ public class SimulationInterface {
 	
 	public static SimulationInterface instance() {
 		if (instance == null)
-			throw new NullPointerException("Create an instance of Interface before calling the static access method.");
+			return (instance = new SimulationInterface());
 		else
 			return instance;
+	}
+	
+	public static void destroy() {
+		if (instance == null)
+			throw new NullPointerException("Create an instance of SimulationInterface before calling the destroy method.");
+		else
+			instance = null;
 	}
 	
 	public void setSimulationBeginTime(long begin) {
@@ -112,7 +119,7 @@ public class SimulationInterface {
 			
 			if(t_scheduler < t_next || !events.isEmpty()) { // Event dazwischen
 				log("scheduler event.");
-				Event event = null;
+				JobFinishedEvent event = null;
 				while((event = events.poll()) != null) {
 					for (int j = 0; j < listeners.size(); j++) {
 						log("contacting listener "+j);
@@ -212,7 +219,7 @@ public class SimulationInterface {
 		this.scheduler = scheduler;
 	}
 
-	public void submitEvent(Event event) {
+	public void submitEvent(JobFinishedEvent event) {
 		events.add(event);
 		events.sort(eventComparator);
 	}

@@ -1,7 +1,7 @@
 package de.dortmund.tu.wmsi.listener;
 
-import de.dortmund.tu.wmsi.event.Event;
+import de.dortmund.tu.wmsi.event.JobFinishedEvent;
 
 public interface JobFinishedListener {
-	public void jobFinished(Event event);
+	public void jobFinished(JobFinishedEvent event);
 }

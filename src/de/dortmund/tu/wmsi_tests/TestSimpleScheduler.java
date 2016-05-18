@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
-import de.dortmund.tu.wmsi.event.Event;
+import de.dortmund.tu.wmsi.event.JobFinishedEvent;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.job.SWFJob;
 import de.dortmund.tu.wmsi.listener.JobFinishedListener;
@@ -13,7 +13,7 @@ import de.dortmund.tu.wmsi.scheduler.Scheduler;
 
 public class TestSimpleScheduler {
 	public static void main(String[] args) {
-		SimulationInterface simface = new SimulationInterface();
+		SimulationInterface simface = SimulationInterface.instance();
 		simface.setSimulationBeginTime(0);
 		simface.setSimulationEndTime(1000);
 		simface.setWorkloadModel(new WorkloadModel() {
@@ -35,7 +35,7 @@ public class TestSimpleScheduler {
 				
 				if(!queue.isEmpty() && queue.peek() < t) {
 					t_sim = queue.poll();
-					SimulationInterface.instance().submitEvent(new Event(t_sim));
+					SimulationInterface.instance().submitEvent(new JobFinishedEvent(t_sim, 0));
 					return t_sim;
 				} else {
 					return t;
@@ -57,7 +57,7 @@ public class TestSimpleScheduler {
 		simface.register(new JobFinishedListener() {
 			boolean submitDone = false;
 			@Override
-			public void jobFinished(Event event) {
+			public void jobFinished(JobFinishedEvent event) {
 				System.out.println("Listener: job finished at " + event.getTime());
 				if(!submitDone) {
 					SimulationInterface.instance().submitJob(new SWFJob(event.getTime()+10, 50, 0));
