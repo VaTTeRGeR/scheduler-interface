@@ -17,15 +17,17 @@ public class FCFS_Scheduler implements Scheduler {
 	
 	@Override
 	public void init(String configPath) {
-		res_max = 100;
+		res_max = 4096;
 		res_used = 0;
+		t_now = 0;
 	}
 	
 
 	@Override
 	public long simulateUntil(long t) {
 		
-		if(!queue.isEmpty() && res_max <= res_used + queue.peek().getResourcesRequested()) { // if there is stuff in the queue and space too soviet russia submit you!
+		//try to process a job
+		if(!queue.isEmpty() && res_max >= res_used + queue.peek().getResourcesRequested()) {
 			Job job = queue.poll();
 			schedule.add(new JobFinishEntry(t_now + job.getRunDuration(), job));
 			Collections.sort(schedule);
@@ -33,15 +35,17 @@ public class FCFS_Scheduler implements Scheduler {
 			res_used += job.getResourcesRequested();
 			return t_now;
 		}
-
-		if(t >= schedule.peek().end) { // a job is going to be finished before t is reached
+		
+		// a job is going to be finished before t is reached
+		if(!schedule.isEmpty() && t >= schedule.peek().end) {
 			JobFinishEntry entry = schedule.poll();
 			SimulationInterface.instance().submitEvent(new JobFinishedEvent(entry.end, entry.job));
 			res_used -= entry.job.getResourcesRequested();
 			return (t_now = entry.end);
 		}
 		
-		return (t_now = t); // nothing happenend
+		// nothing happenend
+		return (t_now = t);
 	}
 	
 	@Override

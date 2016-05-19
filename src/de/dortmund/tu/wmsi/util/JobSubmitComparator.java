@@ -8,6 +8,6 @@ public class JobSubmitComparator implements Comparator<Job>{
 	public int compare(Job x, Job y) {
 		long delta = x.getSubmitTime() - y.getSubmitTime();
 		long absDelta = (delta < 0) ? -1*delta : delta;
-		return (int)(delta/absDelta);
+		return delta == 0L ? 0 : (int)(delta/absDelta);
 	}
 }

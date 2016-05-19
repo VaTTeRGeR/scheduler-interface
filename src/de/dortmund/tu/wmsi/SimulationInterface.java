@@ -1,6 +1,7 @@
 package de.dortmund.tu.wmsi;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
@@ -32,6 +33,8 @@ public class SimulationInterface {
 
 	private long t_begin;
 	private long t_end;
+
+	private boolean jobsDirty = false;
 
 	private final long[] times = new long[3];
 	private final int	END = 0, ROUTINE = 1, SUBMIT = 2;
@@ -77,6 +80,11 @@ public class SimulationInterface {
 			logNewLine();
 			log("new iteration");
 			WorkloadModelRoutine nextRoutine = getNextRoutine();
+			if(jobsDirty) {
+				Collections.sort(jobs,jobComparator);
+				jobsDirty = false;
+			}
+				
 			Job nextJob = jobs.peek();
 
 			times[END] = t_end;
@@ -87,15 +95,15 @@ public class SimulationInterface {
 
 			switch (winner) {
 			case 0:
-				log("t_end is the next step target");
+				log("t_end at "+times[winner]+" is the next step target");
 				break;
 
 			case 1:
-				log("a routine execution is the next step target");
+				log("a routine execution at "+times[winner]+" is the next step target");
 				break;
 
 			case 2:
-				log("a job submit is the next step target");
+				log("a job submit at "+times[winner]+" is the next step target");
 				break;
 
 			default:
@@ -210,7 +218,7 @@ public class SimulationInterface {
 
 	public void submitJob(Job job) {
 		jobs.add(job);
-		jobs.sort(jobComparator);
+		jobsDirty = true;
 	}
 
 	// ** SCHEDULER METHODS **//
