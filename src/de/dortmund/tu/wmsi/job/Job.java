@@ -17,6 +17,10 @@ public abstract class Job {
 		return id;
 	}
 	
+	public boolean isValid() {
+		return getSubmitTime()>=0 && getResourcesRequested()>0 && getRunDuration() >= 0;
+	};
+
 	public abstract long getSubmitTime();
 	public abstract long getRunDuration();
 	public abstract long getResourcesRequested();

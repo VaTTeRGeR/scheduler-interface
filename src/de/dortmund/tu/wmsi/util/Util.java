@@ -1,12 +1,15 @@
 package de.dortmund.tu.wmsi.util;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Properties;
 
-public class FileUtil {
+public class Util {
 	/**
 	 * Load lines from an {@linkplain File} into an {@linkplain ArrayList}. Every Line is represented by a {@linkplain String}
 	 * @param file The {@linkplain File} to load.
@@ -40,15 +43,25 @@ public class FileUtil {
 		return lines.toArray(lineArray);
 	}
 	
-	public static String[] splitLine(String line, String delimiter) {
-		return line.split(delimiter);
-	}
-	
 	public static long getLong(String s){
 		try {
 			return Long.valueOf(s);
 		} catch (Exception e) {
 			throw new IllegalStateException("String "+s+" cannot be interpreted as a long value");
 		}
+	}
+
+	public static Properties getProperties(String configPath) {
+		Properties properties = new Properties();
+		BufferedInputStream stream;
+		try {
+			stream = new BufferedInputStream(new FileInputStream(configPath));
+			properties.load(stream);
+			stream.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		return properties;
 	}
 }

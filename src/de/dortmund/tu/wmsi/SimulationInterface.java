@@ -3,6 +3,7 @@ package de.dortmund.tu.wmsi;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.Properties;
 
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
 import de.dortmund.tu.wmsi.job.Job;
@@ -12,6 +13,9 @@ import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.EventTimeComparator;
 import de.dortmund.tu.wmsi.util.JobSubmitComparator;
+import de.dortmund.tu.wmsi.util.Util;
+import de.dortmund.tu.wmsi_swf_example.model.SWF_Reader_Model;
+import de.dortmund.tu.wmsi_swf_example.scheduler.FCFS_Scheduler;
 
 public class SimulationInterface {
 
@@ -68,6 +72,14 @@ public class SimulationInterface {
 	}
 
 	public void simulate(String configPath) {
+		Properties properties = Util.getProperties(configPath);
+		
+		setSimulationBeginTime(Long.parseLong(properties.getProperty("start_time", "0")));
+		setSimulationEndTime(Long.parseLong(properties.getProperty("end_time", "0")));
+
+		setWorkloadModel(new SWF_Reader_Model()); //TODO //load class
+		setScheduler(new FCFS_Scheduler()); //TODO load class
+
 		scheduler.init(configPath); // TODO real config path
 		model.init(configPath); // TODO real config path
 
@@ -79,7 +91,9 @@ public class SimulationInterface {
 		while (t_now < t_end) { // simulate until t_now >= t_end
 			logNewLine();
 			log("new iteration");
+			
 			WorkloadModelRoutine nextRoutine = getNextRoutine();
+			
 			if(jobsDirty) {
 				Collections.sort(jobs,jobComparator);
 				jobsDirty = false;
@@ -112,20 +126,19 @@ public class SimulationInterface {
 
 			t_next = times[winner]; // t_next = firstMin{t_end,t_routine,t_submit}
 			
+
 			long t_scheduler = t_next;
+
+			checkState();
 			
-			if(t_next > t_now) {
-				log("trying to simulate scheduler until "+t_next);
-				t_scheduler = scheduler.simulateUntil(t_next);
-				log("scheduler got simulated until "+t_scheduler);
-				t_now = t_scheduler;
-			} else if(t_next < t_now) {
-				throw new IllegalStateException("t_now cannot be ahead of t_next");
-			} else {
-				log("skipping scheduler simulation. no time advance");
-			}
+			log("trying to simulate scheduler from "+t_now+" to "+t_next);
+			t_scheduler = scheduler.simulateUntil(t_now, t_next);
+			t_now = t_scheduler;
+			log("scheduler got simulated until "+t_scheduler);
 			
-			if(t_scheduler < t_next || !events.isEmpty()) { // Event dazwischen
+			checkState();
+
+			if(!events.isEmpty()) { // Event dazwischen
 				log("scheduler event.");
 				JobFinishedEvent event = null;
 				while((event = events.poll()) != null) {
@@ -135,7 +148,7 @@ public class SimulationInterface {
 					}
 				}
 			} else if(t_scheduler == t_next) { // Kein Event, durchgelaufen
-				log("no scheduler event");
+				log("no scheduler event queued");
 				if(winner == ROUTINE) {
 					log("executing routine");
 					executeRoutine(nextRoutine);
@@ -143,26 +156,34 @@ public class SimulationInterface {
 					log("passing job "+jobs.peek().getJobId()+" to scheduler");
 					scheduler.enqueueJob(jobs.poll());
 				} else {
-					log("no routine or submit");
+					log("no routine execution or job submit");
 				}
-			} else {
+			} else if(t_next < t_scheduler) {
 				throw new IllegalStateException("Scheduler cannot simulate ahead of t_next");
 			}
 		}
 		logNewLine();
 		log("simulation finished");
 	}
-
-	// ** INTERFACE INNER METHODS **//
 	
-	private void log(String message) {
-		System.out.println(new StringBuilder("t_now = ").append(t_now).append("  -  ").append(message).toString());
+	// ** LOG METHODS ** //
+	
+	public static void log(String message) {
+		System.out.println(new StringBuilder("t_now = ").append(instance().t_now).append("  -  ").append(message).toString());
 	}
 
-	private void logNewLine() {
+	public static void logNewLine() {
 		System.out.println();
 	}
 
+	// ** INTERFACE INNER METHODS ** //
+	
+	private void checkState() {
+		if(t_now > t_next) {
+			throw new IllegalStateException("t_now cannot be ahead of t_next");
+		}
+	}
+	
 	private int getIndexOfSmallestLong(long[] array) {
 		int minIndex = 0;
 		for (int i = 1; i < array.length; i++) {
@@ -194,7 +215,7 @@ public class SimulationInterface {
 		return best;
 	}
 
-	// ** MODEL METHODS **//
+	// ** WORKLOAD-MODEL METHODS **//
 
 	public void setWorkloadModel(WorkloadModel model) {
 		this.model = model;
@@ -217,8 +238,12 @@ public class SimulationInterface {
 	}
 
 	public void submitJob(Job job) {
-		jobs.add(job);
-		jobsDirty = true;
+		if(job.isValid()) {
+			jobs.add(job);
+			jobsDirty = true;
+		} else {
+			throw new IllegalStateException("job "+job.getJobId()+" has invalid values.");
+		}
 	}
 
 	// ** SCHEDULER METHODS **//

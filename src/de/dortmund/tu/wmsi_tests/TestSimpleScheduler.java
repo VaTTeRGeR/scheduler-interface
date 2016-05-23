@@ -20,8 +20,8 @@ public class TestSimpleScheduler {
 			
 			@Override
 			public void init(String configPath) {
-				SimulationInterface.instance().submitJob(new SWFJob(50, 900, 0)); // long job 50 -> 950
-				SimulationInterface.instance().submitJob(new SWFJob(500, 20, 0)); // short job 500 -> 520
+				SimulationInterface.instance().submitJob(new SWFJob(50, 900, 1)); // long job 50 -> 950
+				SimulationInterface.instance().submitJob(new SWFJob(500, 20, 1)); // short job 500 -> 520
 			}
 		});
 
@@ -30,15 +30,13 @@ public class TestSimpleScheduler {
 			private LinkedList<Long> queue = new LinkedList<Long>();
 			
 			@Override
-			public long simulateUntil(long t) {
-				long t_sim = t;
-				
-				if(!queue.isEmpty() && queue.peek() < t) {
-					t_sim = queue.poll();
-					SimulationInterface.instance().submitEvent(new JobFinishedEvent(t_sim, null));
-					return t_sim;
+			public long simulateUntil(long t_now, long t_target) {
+				if(!queue.isEmpty() && queue.peek() < t_target) {
+					long t_job = queue.poll();
+					SimulationInterface.instance().submitEvent(new JobFinishedEvent(t_job, null));
+					return t_job;
 				} else {
-					return t;
+					return t_target;
 				}
 			}
 			
@@ -60,7 +58,7 @@ public class TestSimpleScheduler {
 			public void jobFinished(JobFinishedEvent event) {
 				System.out.println("Listener: job finished at " + event.getTime());
 				if(!submitDone) {
-					SimulationInterface.instance().submitJob(new SWFJob(event.getTime()+10, 50, 0));
+					SimulationInterface.instance().submitJob(new SWFJob(event.getTime()+10, 50, 1));
 					submitDone = true;
 				}
 			}
