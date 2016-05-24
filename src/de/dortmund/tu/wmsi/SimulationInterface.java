@@ -8,6 +8,7 @@ import java.util.Properties;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.listener.JobFinishedListener;
+import de.dortmund.tu.wmsi.logger.Logger;
 import de.dortmund.tu.wmsi.model.WorkloadModel;
 import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
@@ -21,6 +22,7 @@ public class SimulationInterface {
 
 	private WorkloadModel model = null;
 	private Scheduler scheduler = null;
+	private Logger logger = null;
 
 	private final ArrayList<JobFinishedListener> listeners = new ArrayList<JobFinishedListener>();
 	private final ArrayList<WorkloadModelRoutine> routines = new ArrayList<WorkloadModelRoutine>();
@@ -40,6 +42,8 @@ public class SimulationInterface {
 
 	private final long[] times = new long[3];
 	private final int	END = 0, ROUTINE = 1, SUBMIT = 2;
+
+	private static boolean debug = true;
 
 	private SimulationInterface() {
 		instance = this;
@@ -74,6 +78,8 @@ public class SimulationInterface {
 		
 		setSimulationBeginTime(Long.parseLong(properties.getProperty("start_time", "0")));
 		setSimulationEndTime(Long.parseLong(properties.getProperty("end_time", ""+Long.MAX_VALUE)));
+		
+		setDebug(Boolean.parseBoolean(properties.getProperty("debug"," false")));
 
 		try {
 			scheduler = (Scheduler)Class.forName(properties.getProperty("scheduler_package")+"."+properties.getProperty("scheduler")).newInstance();
@@ -93,8 +99,18 @@ public class SimulationInterface {
 			return;
 		}
 
+		if (properties.containsKey("logger")) {
+			try {
+				logger = (Logger) Class.forName(properties.getProperty("logger_package") + "." + properties.getProperty("logger")).newInstance();
+				register(logger);
+				logger.init();
+			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+				e.printStackTrace();
+				log("Logger properties error or class not present");
+			}
+		}
+
 		String config_path = properties.getProperty("config_path","");
-		log(config_path + properties.getProperty("scheduler_config"));
 		scheduler.init(config_path + properties.getProperty("scheduler_config"));
 		model.init(config_path + properties.getProperty("model_config"));
 
@@ -142,12 +158,10 @@ public class SimulationInterface {
 			t_next = times[winner]; // t_next = firstMin{t_end,t_routine,t_submit}
 			
 
-			long t_scheduler = t_next;
-
 			checkState();
 			
 			log("trying to simulate scheduler from "+t_now+" to "+t_next);
-			t_scheduler = scheduler.simulateUntil(t_now, t_next);
+			long t_scheduler = scheduler.simulateUntil(t_now, t_next);
 			t_now = t_scheduler;
 			log("scheduler got simulated until "+t_scheduler);
 			
@@ -181,14 +195,20 @@ public class SimulationInterface {
 		log("simulation finished");
 	}
 	
+	private void setDebug(boolean debug) {
+		SimulationInterface.debug = debug;
+	}
+
 	// ** LOG METHODS ** //
 	
 	public static void log(String message) {
-		System.out.println(new StringBuilder("t_now = ").append(instance().t_now).append("  -  ").append(message).toString());
+		if(debug)
+			System.out.println(new StringBuilder("t_now = ").append(instance().t_now).append("  -  ").append(message).toString());
 	}
 
 	public static void logNewLine() {
-		System.out.println();
+		if(debug)
+			System.out.println();
 	}
 
 	// ** INTERFACE INNER METHODS ** //
@@ -210,21 +230,23 @@ public class SimulationInterface {
 	}
 
 	private void executeRoutine(WorkloadModelRoutine routine) {
-		routine.process(t_now);
+		routine.startProcessing(t_now);
 	}
 
 	private WorkloadModelRoutine getNextRoutine() {
 		WorkloadModelRoutine best = null;
 		WorkloadModelRoutine other = null;
-		long bestTime = Long.MAX_VALUE, otherTime = Long.MAX_VALUE;
+		long bestTime = Long.MAX_VALUE, otherTime = Long.MAX_VALUE, otherLastExecution = Long.MIN_VALUE;
 
 		final int n = routines.size();
 		for (int i = 0; i < n; i++) {
 			other = routines.get(i);
 			otherTime = other.getNextExecutionTime(t_now);
-			if (otherTime >= t_now && otherTime < bestTime) {
+			otherLastExecution = other.getLastExecutionTime();
+			if (((otherLastExecution < t_now && otherTime == t_now) || otherTime > t_now) && otherTime < bestTime) {
+				SimulationInterface.log("Routine: "+otherLastExecution);
 				best = other;
-				bestTime = best.getNextExecutionTime(t_now);
+				bestTime = otherTime;
 			}
 		}
 		return best;
