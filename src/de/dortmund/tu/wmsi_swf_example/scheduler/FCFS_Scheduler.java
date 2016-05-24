@@ -18,6 +18,7 @@ public class FCFS_Scheduler implements Scheduler {
 	
 	@Override
 	public void init(String configPath) {
+		SimulationInterface.log("loading: "+configPath);
 		Properties properties = Util.getProperties(configPath);
 		res_max = Integer.parseInt(properties.getProperty("resources","1024"));
 		res_used = 0;

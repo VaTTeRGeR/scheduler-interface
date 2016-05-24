@@ -1,6 +1,7 @@
 package de.dortmund.tu.wmsi_swf_example.model;
 
 import java.io.File;
+import java.util.Properties;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.job.SWFJob;
@@ -11,10 +12,19 @@ public class SWF_Reader_Model implements WorkloadModel {
 
 	@Override
 	public void init(String configPath) {
+		SimulationInterface.log("loading: "+configPath);
+		Properties properties = Util.getProperties(configPath);
+
+		String swfPath = properties.getProperty("swf_file");
+		if(swfPath == null || !new File(swfPath).exists()) {
+			SimulationInterface.log("SWF-File: " + swfPath + " does not exist!");
+			return;
+		}
+		
 		SimulationInterface simface = SimulationInterface.instance();
 
 		System.out.println("loading lines");
-		String[] lines = Util.loadLines(new File("C:/Users/smfoscmi/Documents/test.swf"));
+		String[] lines = Util.loadLines(new File(swfPath));
 		System.out.println("lines loaded");
 		for (int i = 0; i < lines.length; i++) {
 			String[] values = lines[i].split("\\s+");

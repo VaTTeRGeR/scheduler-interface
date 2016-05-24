@@ -14,8 +14,6 @@ import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.EventTimeComparator;
 import de.dortmund.tu.wmsi.util.JobSubmitComparator;
 import de.dortmund.tu.wmsi.util.Util;
-import de.dortmund.tu.wmsi_swf_example.model.SWF_Reader_Model;
-import de.dortmund.tu.wmsi_swf_example.scheduler.FCFS_Scheduler;
 
 public class SimulationInterface {
 
@@ -75,13 +73,30 @@ public class SimulationInterface {
 		Properties properties = Util.getProperties(configPath);
 		
 		setSimulationBeginTime(Long.parseLong(properties.getProperty("start_time", "0")));
-		setSimulationEndTime(Long.parseLong(properties.getProperty("end_time", "0")));
+		setSimulationEndTime(Long.parseLong(properties.getProperty("end_time", ""+Long.MAX_VALUE)));
 
-		setWorkloadModel(new SWF_Reader_Model()); //TODO //load class
-		setScheduler(new FCFS_Scheduler()); //TODO load class
+		try {
+			scheduler = (Scheduler)Class.forName(properties.getProperty("scheduler_package")+"."+properties.getProperty("scheduler")).newInstance();
+			setScheduler(scheduler);
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			e.printStackTrace();
+			log("Scheduler properties error or class not present");
+			return;
+		}
+		
+		try {
+			model = (WorkloadModel)Class.forName(properties.getProperty("model_package")+"."+properties.getProperty("model")).newInstance();
+			setWorkloadModel(model);
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			e.printStackTrace();
+			log("Model properties error or class not present");
+			return;
+		}
 
-		scheduler.init(configPath); // TODO real config path
-		model.init(configPath); // TODO real config path
+		String config_path = properties.getProperty("config_path","");
+		log(config_path + properties.getProperty("scheduler_config"));
+		scheduler.init(config_path + properties.getProperty("scheduler_config"));
+		model.init(config_path + properties.getProperty("model_config"));
 
 		t_now = t_begin;
 		t_next = t_end;
