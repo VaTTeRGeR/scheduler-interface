@@ -76,6 +76,8 @@ public class SimulationInterface {
 	public void simulate(String configPath) {
 		Properties properties = Util.getProperties(configPath);
 		
+		String config_path = properties.getProperty("config_path","");
+
 		setSimulationBeginTime(Long.parseLong(properties.getProperty("start_time", "0")));
 		setSimulationEndTime(Long.parseLong(properties.getProperty("end_time", ""+Long.MAX_VALUE)));
 		
@@ -103,14 +105,13 @@ public class SimulationInterface {
 			try {
 				logger = (Logger) Class.forName(properties.getProperty("logger_package") + "." + properties.getProperty("logger")).newInstance();
 				register(logger);
-				logger.init();
+				logger.init(config_path + properties.getProperty("logger_config"));
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 				e.printStackTrace();
 				log("Logger properties error or class not present");
 			}
 		}
 
-		String config_path = properties.getProperty("config_path","");
 		scheduler.init(config_path + properties.getProperty("scheduler_config"));
 		model.init(config_path + properties.getProperty("model_config"));
 

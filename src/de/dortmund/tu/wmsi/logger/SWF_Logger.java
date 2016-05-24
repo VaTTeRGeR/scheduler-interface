@@ -1,6 +1,9 @@
 package de.dortmund.tu.wmsi.logger;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.LinkedList;
+import java.util.Properties;
 import java.util.Queue;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
@@ -8,6 +11,7 @@ import de.dortmund.tu.wmsi.event.JobFinishedEvent;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
 import de.dortmund.tu.wmsi.routine.timing.RoutineTimingOnce;
+import de.dortmund.tu.wmsi.util.Util;
 
 public class SWF_Logger implements Logger {
 
@@ -15,11 +19,20 @@ public class SWF_Logger implements Logger {
 	private static final String seperator = "\t";
 	
 	@Override
-	public void init() {
+	public void init(final String configPath) {
+		SimulationInterface.log("loading: "+configPath);
+		Properties properties = Util.getProperties(configPath);
+
+		final String swfPath = properties.getProperty("swf_output_file");
+		final boolean printToConsole = Boolean.parseBoolean(properties.getProperty("print_to_console", "false"));
+
 		SimulationInterface.instance().register(new WorkloadModelRoutine(new RoutineTimingOnce(Long.MAX_VALUE-1)) {
 			@Override
 			public void process(long time) {
-				printLog();
+				saveLog(swfPath);
+				if(printToConsole) {
+					printLog();
+				}
 			}
 		});
 	}
@@ -65,6 +78,19 @@ public class SWF_Logger implements Logger {
 			System.out.println(logArray[i]);
 		}
 		System.out.println(";END\n");
+	}
+	
+	public void saveLog(String path) {
+		try {
+			PrintWriter writer = new PrintWriter(path);
+			String[] logArray = getLog();
+			for (int i = 0; i < logArray.length; i++) {
+				writer.println(logArray[i]);
+			}
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void clear() {
