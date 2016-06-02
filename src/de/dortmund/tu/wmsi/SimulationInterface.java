@@ -74,14 +74,15 @@ public class SimulationInterface {
 	}
 
 	public void simulate(String configPath) {
-		Properties properties = Util.getProperties(configPath);
+		if(configPath != null) {
+			Properties properties = Util.getProperties(configPath);
 		
-		String config_path = properties.getProperty("config_path","");
+			String config_path = properties.getProperty("config_path","");
 
-		setSimulationBeginTime(Long.parseLong(properties.getProperty("start_time", "0")));
-		setSimulationEndTime(Long.parseLong(properties.getProperty("end_time", ""+Long.MAX_VALUE)));
+			setSimulationBeginTime(Long.parseLong(properties.getProperty("start_time", "0")));
+			setSimulationEndTime(Long.parseLong(properties.getProperty("end_time", ""+Long.MAX_VALUE)));
 		
-		setDebug(Boolean.parseBoolean(properties.getProperty("debug"," false")));
+			setDebug(Boolean.parseBoolean(properties.getProperty("debug"," false")));
 
 		try {
 			scheduler = (Scheduler)Class.forName(properties.getProperty("scheduler_package")+"."+properties.getProperty("scheduler")).newInstance();
@@ -114,6 +115,11 @@ public class SimulationInterface {
 
 		scheduler.init(config_path + properties.getProperty("scheduler_config"));
 		model.init(config_path + properties.getProperty("model_config"));
+		
+		} else {
+			scheduler.init(null);
+			model.init(null);
+		}
 
 		t_now = t_begin;
 		t_next = t_end;
