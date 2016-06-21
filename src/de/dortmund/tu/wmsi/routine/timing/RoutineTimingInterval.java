@@ -2,7 +2,6 @@ package de.dortmund.tu.wmsi.routine.timing;
 
 public class RoutineTimingInterval implements RoutineTiming {
 
-	private long t_now = Long.MIN_VALUE;
 	private long t_begin = Long.MIN_VALUE;
 	private long t_interval = 0;
 	
@@ -11,11 +10,9 @@ public class RoutineTimingInterval implements RoutineTiming {
 		t_interval = time_interval;
 	}
 	
-	public long getNextTime(long time) {
-		if(time == t_now)
-			t_now  = time + t_interval;
-		else
-			t_now = time;
+	public long getNextTime(long t_lastExecution, long t_now) {
+		if(t_lastExecution == t_now)
+			t_now += t_interval;
 		
 		if(t_now > t_begin) {
 			return t_begin + t_interval * (long)Math.ceil(((double)(t_now-t_begin))/((double)t_interval));

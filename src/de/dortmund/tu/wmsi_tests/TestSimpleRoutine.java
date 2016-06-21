@@ -9,19 +9,38 @@ import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.job.SWFJob;
 import de.dortmund.tu.wmsi.listener.JobFinishedListener;
 import de.dortmund.tu.wmsi.model.WorkloadModel;
+import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
+import de.dortmund.tu.wmsi.routine.timing.RoutineTimingInterval;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 
-public class TestSimpleScheduler {
+public class TestSimpleRoutine {
 	public static void main(String[] args) {
 		SimulationInterface simface = SimulationInterface.instance();
 		simface.setSimulationBeginTime(0);
-		simface.setSimulationEndTime(Long.MAX_VALUE);
+		simface.setSimulationEndTime(10000);
 		simface.setWorkloadModel(new WorkloadModel() {
 			
 			@Override
 			public void init(String configPath) {
-				SimulationInterface.instance().submitJob(new SWFJob(50, 900, 1)); // long job 50 -> 950
-				SimulationInterface.instance().submitJob(new SWFJob(500, 20, 1)); // short job 500 -> 520
+				simface.register(new WorkloadModelRoutine(new RoutineTimingInterval(0, 1000)) {
+					
+					@Override
+					protected void process(long t_now) {
+						System.out.println("Random job submit Routine executed at "+t_now+".");
+						if(Math.random() > 0.5) {
+							simface.submitJob(new SWFJob(t_now, 50, Long.MAX_VALUE));
+							System.out.println("Routine submitted a job.");
+						} else 
+							System.out.println("Routine didn't submit a job.");
+					}
+				});
+				simface.register(new WorkloadModelRoutine(new RoutineTimingInterval(0, 2500)) {
+					
+					@Override
+					protected void process(long t_now) {
+						System.out.println("Empty routine executing at "+t_now+".");
+					}
+				});
 			}
 		});
 
@@ -53,14 +72,9 @@ public class TestSimpleScheduler {
 		});
 		
 		simface.register(new JobFinishedListener() {
-			boolean submitDone = false;
 			@Override
 			public void jobFinished(JobFinishedEvent event) {
 				System.out.println("Listener: job finished at " + event.getTime());
-				if(!submitDone) {
-					SimulationInterface.instance().submitJob(new SWFJob(event.getTime()+10, 50, 1));
-					submitDone = true;
-				}
 			}
 		});
 		
