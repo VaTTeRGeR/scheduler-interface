@@ -1,4 +1,4 @@
-package de.dortmund.tu.wmsi_tests;
+package de.dortmund.tu.wmsi_swf_example;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 

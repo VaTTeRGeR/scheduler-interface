@@ -5,9 +5,11 @@ import java.util.LinkedList;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
+import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.job.SWFJob;
 import de.dortmund.tu.wmsi.listener.JobFinishedListener;
+import de.dortmund.tu.wmsi.listener.JobStartedListener;
 import de.dortmund.tu.wmsi.model.WorkloadModel;
 import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
 import de.dortmund.tu.wmsi.routine.timing.RoutineTimingInterval;
@@ -105,6 +107,7 @@ public class TestSimpleRoutine {
 			
 			@Override
 			public void enqueueJob(Job job) {
+				SimulationInterface.instance().submitEvent(new JobStartedEvent(job.getSubmitTime(), null));
 				queue.push(job.getSubmitTime()+job.getRunDuration());
 				Collections.sort(queue);
 			}
@@ -114,6 +117,13 @@ public class TestSimpleRoutine {
 			@Override
 			public void jobFinished(JobFinishedEvent event) {
 				System.out.println("Listener: job finished at " + event.getTime());
+			}
+		});
+
+		simface.register(new JobStartedListener() {
+			@Override
+			public void jobStarted(JobStartedEvent event) {
+				System.out.println("Listener: job started at " + event.getTime());
 			}
 		});
 		

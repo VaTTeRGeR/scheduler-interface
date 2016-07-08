@@ -2,11 +2,12 @@ package de.dortmund.tu.wmsi.event;
 
 import de.dortmund.tu.wmsi.job.Job;
 
-public class JobFinishedEvent  {
+public class JobEvent  {
 
 	private Job job;
 	private long time;
-	public JobFinishedEvent(long time, Job job) {
+	
+	public JobEvent(long time, Job job) {
 		this.time = time;
 		this.job = job;
 	}

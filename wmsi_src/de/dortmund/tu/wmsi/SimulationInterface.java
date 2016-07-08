@@ -5,9 +5,12 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Properties;
 
+import de.dortmund.tu.wmsi.event.JobEvent;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
+import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.listener.JobFinishedListener;
+import de.dortmund.tu.wmsi.listener.JobStartedListener;
 import de.dortmund.tu.wmsi.logger.Logger;
 import de.dortmund.tu.wmsi.model.WorkloadModel;
 import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
@@ -24,10 +27,11 @@ public class SimulationInterface {
 	private Scheduler scheduler = null;
 	private Logger logger = null;
 
-	private final ArrayList<JobFinishedListener> listeners = new ArrayList<JobFinishedListener>();
+	private final ArrayList<JobFinishedListener> finishedListeners = new ArrayList<JobFinishedListener>();
+	private final ArrayList<JobStartedListener> startedListeners = new ArrayList<JobStartedListener>();
 	private final ArrayList<WorkloadModelRoutine> routines = new ArrayList<WorkloadModelRoutine>();
 	private final LinkedList<Job> jobs = new LinkedList<Job>();
-	private final LinkedList<JobFinishedEvent> events = new LinkedList<JobFinishedEvent>();
+	private final LinkedList<JobEvent> events = new LinkedList<JobEvent>();
 
 	private final JobSubmitComparator jobComparator = new JobSubmitComparator();
 	private final EventTimeComparator eventComparator = new EventTimeComparator();
@@ -175,11 +179,18 @@ public class SimulationInterface {
 
 			if(!events.isEmpty()) { // Event dazwischen
 				log("scheduler event.");
-				JobFinishedEvent event = null;
+				JobEvent event = null;
 				while((event = events.poll()) != null) {
-					for (int j = 0; j < listeners.size(); j++) {
-						log("contacting listener "+j+".");
-						listeners.get(j).jobFinished(event);
+					if(event instanceof JobFinishedEvent) {
+						for (int j = 0; j < finishedListeners.size(); j++) {
+							log("contacting job finished listener "+j+".");
+							finishedListeners.get(j).jobFinished((JobFinishedEvent)event);
+						}
+					} else if(event instanceof JobStartedEvent) {
+						for (int j = 0; j < startedListeners.size(); j++) {
+							log("contacting job started listener "+j+".");
+							startedListeners.get(j).jobStarted((JobStartedEvent)event);
+						}
 					}
 				}
 			} else if(t_scheduler == t_next) { // Kein Event, durchgelaufen
@@ -278,7 +289,11 @@ public class SimulationInterface {
 	}
 
 	public void register(JobFinishedListener listener) {
-		listeners.add(listener);
+		finishedListeners.add(listener);
+	}
+
+	public void register(JobStartedListener listener) {
+		startedListeners.add(listener);
 	}
 
 	public void register(WorkloadModelRoutine routine) {
@@ -286,7 +301,7 @@ public class SimulationInterface {
 	}
 
 	public void unregister(JobFinishedListener listener) {
-		listeners.remove(listener);
+		finishedListeners.remove(listener);
 	}
 
 	public void unregister(WorkloadModelRoutine routine) {
@@ -308,7 +323,7 @@ public class SimulationInterface {
 		this.scheduler = scheduler;
 	}
 
-	public void submitEvent(JobFinishedEvent event) {
+	public void submitEvent(JobEvent event) {
 		events.add(event);
 		events.sort(eventComparator);
 	}

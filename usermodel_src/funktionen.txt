@@ -1,0 +1,35 @@
+BatchCreator
+	
+
+Behaviour
+	
+
+DayCreator
+	
+
+JobCreator
+	
+
+Session
+	
+
+ThinkTimeLogger
+	
+
+User
+	
+
+UserModel
+	
+
+UserModelCreator
+	Reads Config
+	Creates blank Users
+	Sets BatchSizeMu for Users
+
+UserModelEventHandler
+	Notifies UserModel when a Job is started
+
+UserModelSimulator
+	Read Config
+	Start Simulation with Config

@@ -5,6 +5,7 @@ import java.util.LinkedList;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
+import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.job.SWFJob;
 import de.dortmund.tu.wmsi.listener.JobFinishedListener;
@@ -47,6 +48,7 @@ public class TestSimpleScheduler {
 			
 			@Override
 			public void enqueueJob(Job job) {
+				SimulationInterface.instance().submitEvent(new JobStartedEvent(job.getSubmitTime(), null));
 				queue.push(job.getSubmitTime()+job.getRunDuration());
 				Collections.sort(queue);
 			}
