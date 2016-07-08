@@ -29,28 +29,38 @@ public class FCFS_Scheduler implements Scheduler {
 		SimulationInterface.log(res_used+"/"+res_max+" resources in use");
 		SimulationInterface.log("queue size: "+queue.size());
 		SimulationInterface.log("schedule size: "+schedule.size());
+		
 		//try to process a job from the queue
 		if(!queue.isEmpty() && res_max >= res_used + queue.peek().getResourcesRequested()) {
 			Job job = queue.poll();
+			
 			schedule.add(new JobFinishEntry(t_now + job.getRunDuration(), job));
 			Collections.sort(schedule);
 			
 			res_used += job.getResourcesRequested();
+
 			SimulationInterface.log("moved job "+job.getJobId()+" from queue to schedule");
 			SimulationInterface.log("binding "+job.getResourcesRequested()+" resources");
+			
 			return t_now;
 		}
 		
 		// a job is going to be finished before t_target is reached
 		if(!schedule.isEmpty() && t_target >= schedule.peek().end) {
+			
 			JobFinishEntry entry = schedule.poll();
 			SimulationInterface.instance().submitEvent(new JobFinishedEvent(entry.end, entry.job));
+			
 			res_used -= entry.job.getResourcesRequested();
+			
 			SimulationInterface.log("finished job "+entry.job.getJobId()+" at "+entry.end);
 			SimulationInterface.log("freeing "+entry.job.getResourcesRequested()+" resources");
+			
 			return (t_now = entry.end);
 		}
+		
 		SimulationInterface.log("scheduler idled");
+
 		// nothing happenend
 		return (t_now = t_target);
 	}
@@ -70,8 +80,8 @@ public class FCFS_Scheduler implements Scheduler {
 		}
 		
 		@Override
-		public int compareTo(JobFinishEntry jfe) {
-			return (int)(end-jfe.end);
+		public int compareTo(JobFinishEntry other) {
+			return (int)(end-other.end);
 		}
 	}
 }

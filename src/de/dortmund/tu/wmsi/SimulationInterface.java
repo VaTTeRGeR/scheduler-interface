@@ -143,7 +143,7 @@ public class SimulationInterface {
 			times[ROUTINE] = nextRoutine != null ? nextRoutine.getNextExecutionTime(t_now) : Long.MAX_VALUE;
 			times[SUBMIT] = nextJob != null ? nextJob.getSubmitTime() : Long.MAX_VALUE;
 
-			int winner = getIndexOfMin(times);
+			int winner = getIndexOfMin();
 
 			switch (winner) {
 			case 0:
@@ -206,7 +206,7 @@ public class SimulationInterface {
 		log("simulation finished");
 	}
 	
-	private void setDebug(boolean debug) {
+	public void setDebug(boolean debug) {
 		SimulationInterface.debug = debug;
 	}
 
@@ -233,10 +233,13 @@ public class SimulationInterface {
 			throw new IllegalStateException("t_now cannot be ahead of t_next.");
 	}
 
-	private int getIndexOfMin(long[] array) {
-		int minIndex = ROUTINE;
-		for (int i = 0; i < array.length; i++) {
-			if (array[i] < array[minIndex]) {
+	/**
+	 *@return END if all are equal, else returns the first that is "<=" the rest.
+	 **/
+	private int getIndexOfMin() {
+		int minIndex = END;
+		for (int i = 0; i < times.length; i++) {
+			if (times[i] < times[minIndex]) {
 				minIndex = i;
 			}
 		}

@@ -11,6 +11,8 @@ import de.dortmund.tu.wmsi.listener.JobFinishedListener;
 import de.dortmund.tu.wmsi.model.WorkloadModel;
 import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
 import de.dortmund.tu.wmsi.routine.timing.RoutineTimingInterval;
+import de.dortmund.tu.wmsi.routine.timing.RoutineTimingMultiple;
+import de.dortmund.tu.wmsi.routine.timing.RoutineTimingOnce;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 
 public class TestSimpleRoutine {
@@ -18,10 +20,11 @@ public class TestSimpleRoutine {
 		SimulationInterface simface = SimulationInterface.instance();
 		simface.setSimulationBeginTime(0);
 		simface.setSimulationEndTime(10000);
+		simface.setDebug(false);
 		simface.setWorkloadModel(new WorkloadModel() {
-			
 			@Override
 			public void init(String configPath) {
+				//Should execute at: 0, 1000, 2000, etc
 				simface.register(new WorkloadModelRoutine(new RoutineTimingInterval(0, 1000)) {
 					
 					@Override
@@ -30,17 +33,53 @@ public class TestSimpleRoutine {
 						if(Math.random() > 0.5) {
 							simface.submitJob(new SWFJob(t_now, 50, Long.MAX_VALUE));
 							System.out.println("Routine submitted a job.");
-						} else 
+						} else {
 							System.out.println("Routine didn't submit a job.");
+						}
 					}
 				});
+				
+				//Should execute at: 0, 2500, 5000, etc
 				simface.register(new WorkloadModelRoutine(new RoutineTimingInterval(0, 2500)) {
 					
+					@Override
+					protected void process(long t_now) {
+						System.out.println("Interval routine executing at "+t_now+".");
+					}
+				});
+
+				//Should execute at 1999
+				simface.register(new WorkloadModelRoutine(new RoutineTimingOnce(1999)) {
 					@Override
 					protected void process(long t_now) {
 						System.out.println("Empty routine executing at "+t_now+".");
 					}
 				});
+
+				//Should not execute
+				simface.register(new WorkloadModelRoutine(new RoutineTimingOnce(-1999)) {
+					@Override
+					protected void process(long t_now) {
+						System.out.println("Empty routine executing at "+t_now+".");
+					}
+				});
+
+				//Should not execute
+				simface.register(new WorkloadModelRoutine(new RoutineTimingOnce(Long.MAX_VALUE-1L)) {
+					@Override
+					protected void process(long t_now) {
+						System.out.println("Empty routine executing at "+t_now+".");
+					}
+				});
+
+				//will execute at: 555, 556, 566
+				simface.register(new WorkloadModelRoutine(new RoutineTimingMultiple(555,556,555,566,10001)) {
+					@Override
+					protected void process(long t_now) {
+						System.out.println("Multiple routine executing at "+t_now+".");
+					}
+				});
+
 			}
 		});
 
