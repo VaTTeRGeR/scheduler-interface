@@ -1,30 +1,35 @@
 BatchCreator
-	
+	Creates Batches of Jobs depending on probabilities and statistics
 
-Behaviour
-	
+Behavior
+	Determines how the User reacts when a batch is finished etc
 
 DayCreator
-	
+	Determines the Users activity time
 
 JobCreator
-	
+	Creates Jobs depending on probabilities and statistics
 
 Session
-	
+	Creates a Batch of Jobs, waits till all finished and then either terminates itself or submits a new Batch
 
 ThinkTimeLogger
-	
+	Logs something, but wtf is going in this class
 
 User
+	starts Sessions
+	Receives and filters job started events
+		If his Job, determine next Session start
 	
 
 UserModel
-	
+	Receives JobStartedEvents
+	Informs Users about these Events
+	Stores and returns Jobs in a PriorityQueue
 
 UserModelCreator
 	Reads Config
-	Creates blank Users
+	Creates Users
 	Sets BatchSizeMu for Users
 
 UserModelEventHandler

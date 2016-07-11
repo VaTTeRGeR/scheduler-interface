@@ -54,7 +54,9 @@ public class SimulationInterface {
 	}
 
 	// ** INTERFACE PUBLIC METHODS **//
-	
+	/**
+	 * Returns an instance of SimulationInterface
+	*/
 	public static SimulationInterface instance() {
 		if (instance == null)
 			return (instance = new SimulationInterface());
@@ -197,7 +199,7 @@ public class SimulationInterface {
 				log("no scheduler event queued");
 				if(winner == ROUTINE) {
 					log("executing routine");
-					executeRoutine(nextRoutine);
+					nextRoutine.startProcessing(t_now);
 				} else if(winner == SUBMIT) {
 					log("passing job "+jobs.peek().getJobId()+" to scheduler");
 					scheduler.enqueueJob(jobs.poll());
@@ -255,10 +257,6 @@ public class SimulationInterface {
 			}
 		}
 		return minIndex;
-	}
-
-	private void executeRoutine(WorkloadModelRoutine routine) {
-		routine.startProcessing(t_now);
 	}
 
 	private WorkloadModelRoutine getNextRoutine() {

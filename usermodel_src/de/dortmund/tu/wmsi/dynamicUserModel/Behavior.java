@@ -3,7 +3,6 @@ package de.dortmund.tu.wmsi.dynamicUserModel;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.math3.distribution.LogisticDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
 public class Behavior {

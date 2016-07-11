@@ -5,7 +5,8 @@ import java.util.LinkedList;
 import java.util.Properties;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
-import de.dortmund.tu.wmsi.event.JobEvent;
+import de.dortmund.tu.wmsi.event.JobFinishedEvent;
+import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.Util;
@@ -36,6 +37,8 @@ public class FCFS_Scheduler implements Scheduler {
 			
 			schedule.add(new JobFinishEntry(t_now + job.getRunDuration(), job));
 			Collections.sort(schedule);
+
+			SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
 			
 			res_used += job.getResourcesRequested();
 
@@ -49,7 +52,7 @@ public class FCFS_Scheduler implements Scheduler {
 		if(!schedule.isEmpty() && t_target >= schedule.peek().end) {
 			
 			JobFinishEntry entry = schedule.poll();
-			SimulationInterface.instance().submitEvent(new JobEvent(entry.end, entry.job));
+			SimulationInterface.instance().submitEvent(new JobFinishedEvent(entry.end, entry.job));
 			
 			res_used -= entry.job.getResourcesRequested();
 			
