@@ -9,6 +9,6 @@ public class RoutineTimingOnce implements RoutineTiming {
 	}
 	
 	public long getNextTime(long t_lastExecution, long t_now) {
-		return t_execute > t_lastExecution ? t_execute :Long.MAX_VALUE;
+		return (t_execute > t_lastExecution && t_now <= t_execute) ? t_execute :Long.MAX_VALUE;
 	}
 }

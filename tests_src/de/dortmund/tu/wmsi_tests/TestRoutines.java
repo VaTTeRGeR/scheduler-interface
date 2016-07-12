@@ -1,28 +1,29 @@
 package de.dortmund.tu.wmsi_tests;
 
-import java.util.Collections;
-import java.util.LinkedList;
+import java.awt.geom.GeneralPath;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
 import de.dortmund.tu.wmsi.event.JobStartedEvent;
-import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.job.SWFJob;
 import de.dortmund.tu.wmsi.listener.JobFinishedListener;
 import de.dortmund.tu.wmsi.listener.JobStartedListener;
+import de.dortmund.tu.wmsi.logger.GenericLogger;
 import de.dortmund.tu.wmsi.model.WorkloadModel;
 import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
 import de.dortmund.tu.wmsi.routine.timing.RoutineTimingInterval;
 import de.dortmund.tu.wmsi.routine.timing.RoutineTimingMultiple;
 import de.dortmund.tu.wmsi.routine.timing.RoutineTimingOnce;
-import de.dortmund.tu.wmsi.scheduler.Scheduler;
+import de.dortmund.tu.wmsi_swf_example.scheduler.FCFS_Scheduler;
 
-public class TestSimpleRoutine {
+public class TestRoutines {
 	public static void main(String[] args) {
 		SimulationInterface simface = SimulationInterface.instance();
-		simface.setSimulationBeginTime(0);
-		simface.setSimulationEndTime(10000);
+
+		simface.setSimulationBeginTime(-1000);
+		simface.setSimulationEndTime(5000);
 		simface.setDebug(false);
+		
 		simface.setWorkloadModel(new WorkloadModel() {
 			@Override
 			public void init(String configPath) {
@@ -33,7 +34,7 @@ public class TestSimpleRoutine {
 					protected void process(long t_now) {
 						System.out.println("Random job submit Routine executed at "+t_now+".");
 						if(Math.random() > 0.5) {
-							simface.submitJob(new SWFJob(t_now, 50, Long.MAX_VALUE));
+							simface.submitJob(new SWFJob(t_now, 50, 10));
 							System.out.println("Routine submitted a job.");
 						} else {
 							System.out.println("Routine didn't submit a job.");
@@ -41,7 +42,7 @@ public class TestSimpleRoutine {
 					}
 				});
 				
-				//Should execute at: 0, 2500, 5000, etc
+				//Should execute at: 0, 2500, ... etc depending on t_end
 				simface.register(new WorkloadModelRoutine(new RoutineTimingInterval(0, 2500)) {
 					
 					@Override
@@ -75,7 +76,7 @@ public class TestSimpleRoutine {
 				});
 
 				//will execute at: 555, 556, 566
-				simface.register(new WorkloadModelRoutine(new RoutineTimingMultiple(555,556,555,566,10001)) {
+				simface.register(new WorkloadModelRoutine(new RoutineTimingMultiple(555,556,555,566,-10)) {
 					@Override
 					protected void process(long t_now) {
 						System.out.println("Multiple routine executing at "+t_now+".");
@@ -85,33 +86,7 @@ public class TestSimpleRoutine {
 			}
 		});
 
-		simface.setScheduler(new Scheduler() {
-			
-			private LinkedList<Long> queue = new LinkedList<Long>();
-			
-			@Override
-			public long simulateUntil(long t_now, long t_target) {
-				if(!queue.isEmpty() && queue.peek() < t_target) {
-					long t_job = queue.poll();
-					SimulationInterface.instance().submitEvent(new JobFinishedEvent(t_job, null));
-					return t_job;
-				} else {
-					return t_target;
-				}
-			}
-			
-			@Override
-			public void init(String configPath) {
-				
-			}
-			
-			@Override
-			public void enqueueJob(Job job) {
-				SimulationInterface.instance().submitEvent(new JobStartedEvent(job.getSubmitTime(), null));
-				queue.push(job.getSubmitTime()+job.getRunDuration());
-				Collections.sort(queue);
-			}
-		});
+		simface.setScheduler(new FCFS_Scheduler(Integer.MAX_VALUE));
 		
 		simface.register(new JobFinishedListener() {
 			@Override
@@ -126,6 +101,8 @@ public class TestSimpleRoutine {
 				System.out.println("Listener: job started at " + event.getTime());
 			}
 		});
+		
+		simface.register(new GenericLogger());
 		
 		simface.simulate(null);
 	}

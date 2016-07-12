@@ -1,4 +1,4 @@
-package de.dortmund.tu.wmsi.logger;
+package de.dortmund.tu.wmsi_swf_example.logger;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -8,7 +8,10 @@ import java.util.Queue;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
+import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
+import de.dortmund.tu.wmsi.job.SWFJob;
+import de.dortmund.tu.wmsi.logger.Logger;
 import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
 import de.dortmund.tu.wmsi.routine.timing.RoutineTimingOnce;
 import de.dortmund.tu.wmsi.util.Util;
@@ -41,30 +44,21 @@ public class SWF_Logger implements Logger {
 	public void jobFinished(JobFinishedEvent event) {
 		Job job = event.getJob();
 		
-		long t_finish = event.getTime();
-		long t_wait = (t_finish-job.getRunDuration())-job.getSubmitTime();
+		if(job instanceof SWFJob) {
+			long t_finish = event.getTime();
+			long t_wait = (t_finish - job.getRunDuration()) - job.getSubmitTime();
 
-		StringBuilder builder = new StringBuilder();
-		builder.append(job.getJobId()).append(seperator); // id
-		builder.append(job.getSubmitTime()).append(seperator); // t_submit
-		builder.append(t_wait).append(seperator); // t_wait
-		builder.append(job.getRunDuration()).append(seperator); // t_run
-		builder.append(job.getResourcesRequested()).append(seperator); // res_alloc
-		builder.append("-1").append(seperator); // skipped
-		builder.append("-1").append(seperator); // skipped
-		builder.append(job.getResourcesRequested()).append(seperator); // res_requested
-		builder.append("-1").append(seperator); // skipped
-		builder.append("-1").append(seperator); // skipped
-		builder.append("-1").append(seperator); // skipped
-		builder.append("-1").append(seperator); // skipped
-		builder.append("-1").append(seperator); // skipped
-		builder.append("-1").append(seperator); // skipped
-		builder.append("-1").append(seperator); // skipped
-		builder.append("-1").append(seperator); // skipped
-		builder.append("-1").append(seperator); // skipped
-		builder.append("-1").append(seperator); // skipped
+			SWFJob swfJob = (SWFJob)job;
+			swfJob.set(SWFJob.WAIT_TIME, t_wait);
+			
+			StringBuilder builder = new StringBuilder();
+			for (int i = 0; i < 18; i++) {
+				builder.append(swfJob.get(i));
+				builder.append(seperator);
+			}
 
-		log.add(builder.toString());
+			log.add(builder.toString());
+		}
 	}
 	
 	public String[] getLog() {
@@ -96,4 +90,7 @@ public class SWF_Logger implements Logger {
 	public void clear() {
 		log.clear();
 	}
+
+	@Override
+	public void jobStarted(JobStartedEvent event) {}
 }

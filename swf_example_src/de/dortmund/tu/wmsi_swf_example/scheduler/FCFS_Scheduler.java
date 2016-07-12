@@ -11,20 +11,35 @@ import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.Util;
 
-public class FCFS_Scheduler implements Scheduler {
+public class FCFS_Scheduler implements Scheduler<Job> {
 
 	private LinkedList<Job> queue = new LinkedList<Job>();
 	private LinkedList<JobFinishEntry> schedule = new LinkedList<JobFinishEntry>();
 	private int res_max, res_used;
+	private String configPath = null;
+	
+	public FCFS_Scheduler(int resources_max) {
+		res_max = resources_max;
+	}
+	
+	public FCFS_Scheduler(String manualConfigPath) {
+		this.configPath = manualConfigPath;
+	}
 	
 	@Override
 	public void init(String configPath) {
-		SimulationInterface.log("loading: "+configPath);
-		Properties properties = Util.getProperties(configPath);
-		res_max = Integer.parseInt(properties.getProperty("resources","1024"));
+		if(configPath != null)
+			this.configPath = configPath;
+		
+		if(this.configPath != null) {
+			SimulationInterface.log("loading: "+this.configPath);
+			Properties properties = Util.getProperties(this.configPath);
+		
+			res_max = Integer.parseInt(properties.getProperty("resources","1024"));
+		}
 		res_used = 0;
 	}
-
+	
 	@Override
 	public long simulateUntil(long t_now, long t_target) {
 		SimulationInterface.log(res_used+"/"+res_max+" resources in use");
@@ -86,5 +101,10 @@ public class FCFS_Scheduler implements Scheduler {
 		public int compareTo(JobFinishEntry other) {
 			return (int)(end-other.end);
 		}
+	}
+
+	@Override
+	public boolean canProcess(Job job) {
+		return true;
 	}
 }

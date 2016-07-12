@@ -24,7 +24,7 @@ public class SimulationInterface {
 	private static SimulationInterface instance = null;
 
 	private WorkloadModel model = null;
-	private Scheduler scheduler = null;
+	private Scheduler<? extends Job> scheduler = null;
 	private Logger logger = null;
 
 	private final ArrayList<JobFinishedListener> finishedListeners = new ArrayList<JobFinishedListener>();
@@ -39,8 +39,8 @@ public class SimulationInterface {
 	private long t_now;
 	private long t_next;
 
-	private long t_begin;
-	private long t_end;
+	private long t_begin = Long.MIN_VALUE;
+	private long t_end = Long.MAX_VALUE;
 
 	private boolean jobsDirty = false;
 
@@ -71,6 +71,8 @@ public class SimulationInterface {
 			instance = null;
 	}
 	
+	// ** SETTERS ** //
+	
 	public void setSimulationBeginTime(long begin) {
 		t_begin = begin;
 	}
@@ -79,52 +81,81 @@ public class SimulationInterface {
 		t_end = end;
 	}
 
+	public void setDebug(boolean debug) {
+		SimulationInterface.debug = debug;
+	}
+
+	// ** GETTERS ** //
+	
+	public long getSimulationBeginTime() {
+		return t_begin;
+	}
+
+	public long getSimulationEndTime() {
+		return t_end;
+	}
+
+	// ** UBER SIMULATE METHOD ** //
+
+	@SuppressWarnings("unchecked")
 	public void simulate(String configPath) {
 		if(configPath != null) {
 			Properties properties = Util.getProperties(configPath);
-		
-			String config_path = properties.getProperty("config_path","");
+
+			String config_path = properties.getProperty("config_path", "");
 
 			setSimulationBeginTime(Long.parseLong(properties.getProperty("start_time", "0")));
-			setSimulationEndTime(Long.parseLong(properties.getProperty("end_time", ""+Long.MAX_VALUE)));
-		
-			setDebug(Boolean.parseBoolean(properties.getProperty("debug"," false")));
+			setSimulationEndTime(Long.parseLong(properties.getProperty("end_time", "" + Long.MAX_VALUE)));
 
-		try {
-			scheduler = (Scheduler)Class.forName(properties.getProperty("scheduler_package")+"."+properties.getProperty("scheduler")).newInstance();
-			setScheduler(scheduler);
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-			e.printStackTrace();
-			log("Scheduler properties error or class not present");
-			return;
-		}
-		
-		try {
-			model = (WorkloadModel)Class.forName(properties.getProperty("model_package")+"."+properties.getProperty("model")).newInstance();
-			setWorkloadModel(model);
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-			e.printStackTrace();
-			log("Model properties error or class not present");
-			return;
-		}
+			setDebug(Boolean.parseBoolean(properties.getProperty("debug", " false")));
 
-		if (properties.containsKey("logger")) {
 			try {
-				logger = (Logger) Class.forName(properties.getProperty("logger_package") + "." + properties.getProperty("logger")).newInstance();
-				register(logger);
-				logger.init(config_path + properties.getProperty("logger_config"));
+				scheduler = (Scheduler<? extends Job>) Class.forName(properties.getProperty("scheduler_package") + "." + properties.getProperty("scheduler")).newInstance();
+				setScheduler(scheduler);
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 				e.printStackTrace();
-				log("Logger properties error or class not present");
+				log("Scheduler properties error or class not present");
+				return;
 			}
-		}
 
-		scheduler.init(config_path + properties.getProperty("scheduler_config"));
-		model.init(config_path + properties.getProperty("model_config"));
-		
+			try {
+				model = (WorkloadModel) Class.forName(properties.getProperty("model_package") + "." + properties.getProperty("model")).newInstance();
+				setWorkloadModel(model);
+			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+				e.printStackTrace();
+				log("Model properties error or class not present");
+				return;
+			}
+
+			if (properties.containsKey("logger")) {
+				try {
+					logger = (Logger) Class
+							.forName(properties.getProperty("logger_package") + "." + properties.getProperty("logger"))
+							.newInstance();
+					register(logger);
+					logger.init(config_path + properties.getProperty("logger_config"));
+				} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+					e.printStackTrace();
+					log("Logger properties error or class not present");
+				}
+			}
+
+			scheduler.init(config_path + properties.getProperty("scheduler_config"));
+			model.init(config_path + properties.getProperty("model_config"));
+
 		} else {
-			scheduler.init(null);
-			model.init(null);
+			if(scheduler != null)
+				scheduler.init(null);
+			else
+				throw new IllegalStateException("No Scheduler set");
+			
+			if(model != null)
+				model.init(null);
+			else
+				throw new IllegalStateException("No Scheduler set");
+			
+			if(logger != null)
+				logger.init(null);
 		}
 
 		t_now = t_begin;
@@ -136,6 +167,14 @@ public class SimulationInterface {
 		while (t_now <= t_end) { // simulate until t_now >= t_end
 			logNewLine();
 			log("new iteration");
+			
+			//Remove finished Routines
+			for (int i = 0; i < routines.size(); i++) {
+				if(routines.get(i).getNextExecutionTime(t_now) == Long.MAX_VALUE) {
+					log("Removing a Routine that last executed at "+routines.get(i).getLastExecutionTime());
+					routines.remove(i--);
+				}
+			}
 			
 			WorkloadModelRoutine nextRoutine = getNextRoutine();
 			
@@ -202,7 +241,10 @@ public class SimulationInterface {
 					nextRoutine.startProcessing(t_now);
 				} else if(winner == SUBMIT) {
 					log("passing job "+jobs.peek().getJobId()+" to scheduler");
-					scheduler.enqueueJob(jobs.poll());
+					if(scheduler.canProcess(jobs.peek()))
+						scheduler.enqueueJob(jobs.poll());
+					else
+						throw new IllegalStateException();
 				} else {
 					log("no routine execution or job submit");
 				}
@@ -219,10 +261,6 @@ public class SimulationInterface {
 		log("simulation finished");
 	}
 	
-	public void setDebug(boolean debug) {
-		SimulationInterface.debug = debug;
-	}
-
 	// ** LOG METHODS ** //
 	
 	public static void log(String message) {
@@ -280,10 +318,12 @@ public class SimulationInterface {
 		return best;
 	}
 
-	// ** WORKLOAD-MODEL METHODS **//
-
-	public void setWorkloadModel(WorkloadModel model) {
-		this.model = model;
+	// ** REGISTER METHODS ** //
+	
+	public void register(Logger listener) {
+		logger = listener;
+		startedListeners.add(listener);
+		finishedListeners.add(listener);
 	}
 
 	public void register(JobFinishedListener listener) {
@@ -298,14 +338,31 @@ public class SimulationInterface {
 		routines.add(routine);
 	}
 
+	// ** UNREGISTER METHODS ** //
+	public void unregister(Logger logger) {
+		logger = null;
+		unregister((JobStartedListener)logger);
+		unregister((JobFinishedListener)logger);
+	}
+
 	public void unregister(JobFinishedListener listener) {
 		finishedListeners.remove(listener);
+	}
+
+	public void unregister(JobStartedListener listener) {
+		startedListeners.remove(listener);
 	}
 
 	public void unregister(WorkloadModelRoutine routine) {
 		routines.remove(routine);
 	}
 
+	// ** WORKLOAD METHODS ** //
+
+	public void setWorkloadModel(WorkloadModel model) {
+		this.model = model;
+	}
+	
 	public void submitJob(Job job) {
 		if(job.isValid()) {
 			jobs.add(job);
@@ -317,7 +374,7 @@ public class SimulationInterface {
 
 	// ** SCHEDULER METHODS **//
 
-	public void setScheduler(Scheduler scheduler) {
+	public void setScheduler(Scheduler<? extends Job> scheduler) {
 		this.scheduler = scheduler;
 	}
 

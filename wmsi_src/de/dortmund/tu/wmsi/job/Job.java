@@ -2,7 +2,8 @@ package de.dortmund.tu.wmsi.job;
 
 public abstract class Job {
 
-	private static int idcounter = 0;
+	private static int ID_COUNTER = 0;
+	
 	private int id = -1;
 	
 	public Job() {
@@ -10,7 +11,7 @@ public abstract class Job {
 	}
 	
 	private synchronized void setId(){
-		id = idcounter++;
+		id = ID_COUNTER++;
 	}
 	
 	public int getJobId() {
