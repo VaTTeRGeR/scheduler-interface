@@ -102,10 +102,10 @@ public class SimulationInterface {
 		if(configPath != null) {
 			Properties properties = Util.getProperties(configPath);
 
-			String config_path = properties.getProperty("config_path", "");
+			String config_path = properties.getProperty("config_path", new String());
 
 			setSimulationBeginTime(Long.parseLong(properties.getProperty("start_time", "0")));
-			setSimulationEndTime(Long.parseLong(properties.getProperty("end_time", "" + Long.MAX_VALUE)));
+			setSimulationEndTime(Long.parseLong(properties.getProperty("end_time", String.valueOf(Long.MAX_VALUE))));
 
 			setDebug(Boolean.parseBoolean(properties.getProperty("debug", " false")));
 
@@ -320,10 +320,11 @@ public class SimulationInterface {
 
 	// ** REGISTER METHODS ** //
 	
-	public void register(Logger listener) {
-		logger = listener;
-		startedListeners.add(listener);
-		finishedListeners.add(listener);
+	public void register(Logger logger) {
+		if(this.logger == null)
+			this.logger = logger;
+		startedListeners.add(logger);
+		finishedListeners.add(logger);
 	}
 
 	public void register(JobFinishedListener listener) {
@@ -340,7 +341,8 @@ public class SimulationInterface {
 
 	// ** UNREGISTER METHODS ** //
 	public void unregister(Logger logger) {
-		logger = null;
+		if(this.logger == logger)
+			this.logger = null;
 		unregister((JobStartedListener)logger);
 		unregister((JobFinishedListener)logger);
 	}
@@ -364,11 +366,11 @@ public class SimulationInterface {
 	}
 	
 	public void submitJob(Job job) {
-		if(job.isValid()) {
+		if(!job.isValid()) {
+			throw new IllegalStateException("job "+job.getJobId()+" did not pass validity check.");
+		} else {
 			jobs.add(job);
 			jobsDirty = true;
-		} else {
-			throw new IllegalStateException("job "+job.getJobId()+" has invalid values.");
 		}
 	}
 

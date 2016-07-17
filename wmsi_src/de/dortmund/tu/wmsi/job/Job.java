@@ -2,16 +2,10 @@ package de.dortmund.tu.wmsi.job;
 
 public abstract class Job {
 
-	private static int ID_COUNTER = 0;
-	
 	private int id = -1;
 	
-	public Job() {
-		setId();
-	}
-	
-	private synchronized void setId(){
-		id = ID_COUNTER++;
+	public Job(int id) {
+		this.id = id;
 	}
 	
 	public int getJobId() {
@@ -19,7 +13,7 @@ public abstract class Job {
 	}
 	
 	public boolean isValid() {
-		return getSubmitTime()>=0 && getResourcesRequested()>0 && getRunDuration() >= 0;
+		return getResourcesRequested() > 0 && getRunDuration() >= 0 && id >= 0;
 	};
 
 	public abstract long getSubmitTime();

@@ -18,6 +18,9 @@ public class FCFS_Scheduler implements Scheduler<Job> {
 	private int res_max, res_used;
 	private String configPath = null;
 	
+	public FCFS_Scheduler() {
+	}
+	
 	public FCFS_Scheduler(int resources_max) {
 		res_max = resources_max;
 	}

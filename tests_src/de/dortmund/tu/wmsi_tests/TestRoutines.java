@@ -1,7 +1,5 @@
 package de.dortmund.tu.wmsi_tests;
 
-import java.awt.geom.GeneralPath;
-
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
 import de.dortmund.tu.wmsi.event.JobStartedEvent;
@@ -18,7 +16,7 @@ import de.dortmund.tu.wmsi_swf_example.scheduler.FCFS_Scheduler;
 
 public class TestRoutines {
 	public static void main(String[] args) {
-		SimulationInterface simface = SimulationInterface.instance();
+		final SimulationInterface simface = SimulationInterface.instance();
 
 		simface.setSimulationBeginTime(-1000);
 		simface.setSimulationEndTime(5000);

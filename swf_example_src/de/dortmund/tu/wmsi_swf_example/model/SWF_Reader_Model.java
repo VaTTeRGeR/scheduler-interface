@@ -17,7 +17,7 @@ public class SWF_Reader_Model implements WorkloadModel {
 		Properties properties = Util.getProperties(configPath);
 
 		String swfPath = properties.getProperty("swf_file");
-		if(swfPath == null || !new File(swfPath).exists()) {
+		if(swfPath == null || !(new File(swfPath).exists())) {
 			SimulationInterface.log("SWF-File: " + swfPath + " does not exist!");
 			return;
 		}
@@ -32,9 +32,8 @@ public class SWF_Reader_Model implements WorkloadModel {
 		
 		for (int i = 0; i < lines.length; i++) {
 			String[] values = lines[i].split("\\s+");
-			
-			if(Util.getLong(values[1]) >= 0 && Util.getLong(values[3]) >= 0 && Util.getLong(values[7]) >= 0) {
-				simface.submitJob( new SWFJob( Util.getLong(values[1]), Util.getLong(values[3]), Util.getLong(values[7]) ) );
+			if(Util.getLong(values[SWFJob.SUBMIT_TIME]) >= 0 && Util.getLong(values[SWFJob.RUN_TIME]) >= 0 && Util.getLong(values[SWFJob.RESOURCES_ALLOCATED]) >= 0) {
+				simface.submitJob(new SWFJob(Integer.valueOf((values[SWFJob.JOB_NUMBER])), Util.getLong(values[SWFJob.SUBMIT_TIME]), Util.getLong(values[SWFJob.RUN_TIME]), Util.getLong(values[SWFJob.RESOURCES_ALLOCATED])));
 			}
 		}
 		

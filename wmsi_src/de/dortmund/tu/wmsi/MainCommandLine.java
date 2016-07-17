@@ -13,11 +13,11 @@ public class MainCommandLine {
 				case "-file":
 					try {
 						configPath = args[i+1];
-					} catch (NullPointerException ne) {
-						ne.printStackTrace();
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
 					break;
-
+				
 				default:
 					break;
 				}
@@ -25,7 +25,7 @@ public class MainCommandLine {
 			if(configPath != null)
 				simface.simulate(configPath);
 			else 
-				System.err.println("config path cannot be null!");
+				System.err.println("A config path needs to be provided via -f [configpath]");
 		}
 	}
 }

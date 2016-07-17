@@ -24,6 +24,11 @@ public class SWFJob extends Job {
 	public static final int THINK_TIME_PRECEDING_JOB = 17;
 	
 	public SWFJob() {
+		this(JobIDCounter.nextID());
+	}
+	
+	public SWFJob(int id) {
+		super(id);
 		values[JOB_NUMBER] = getJobId();
 		for (int i = 1; i < values.length; i++) {
 			values[i] = -1L;
@@ -31,7 +36,11 @@ public class SWFJob extends Job {
 	}
 	
 	public SWFJob(long submitTime, long runDuration, long resources) {
-		this();
+		this(JobIDCounter.nextID(), submitTime, runDuration, resources);
+	}
+	
+	public SWFJob(int id, long submitTime, long runDuration, long resources) {
+		this(id);
 		set(SUBMIT_TIME, submitTime);
 		set(RUN_TIME, runDuration);
 		set(RESOURCES_REQUESTED, resources);

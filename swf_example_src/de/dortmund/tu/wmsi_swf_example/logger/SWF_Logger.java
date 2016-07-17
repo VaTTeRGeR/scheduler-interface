@@ -78,9 +78,11 @@ public class SWF_Logger implements Logger {
 		try {
 			PrintWriter writer = new PrintWriter(path);
 			String[] logArray = getLog();
+			writer.println(";SWF BEGIN");
 			for (int i = 0; i < logArray.length; i++) {
 				writer.println(logArray[i]);
 			}
+			writer.println(";END");
 			writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();

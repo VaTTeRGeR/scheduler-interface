@@ -19,11 +19,12 @@ public class Util {
 		ArrayList<String> lines = new ArrayList<String>();
 		BufferedReader reader = null;
 		try {
-			reader = new BufferedReader(new FileReader(file), (int)Math.pow(2, 10));
+			reader = new BufferedReader(new FileReader(file));
 			String line;
 			while (reader.ready()) {
 				line = reader.readLine();
-				if(!line.contains(";"))
+				line = line.trim();
+				if(!line.contains(";") && !line.isEmpty())
 					lines.add(line);
 			}
 			reader.close();

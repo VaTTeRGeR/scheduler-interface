@@ -10,15 +10,15 @@ public class TestSimpleScheduler {
 	public static void main(String[] args) {
 		SimulationInterface simface = SimulationInterface.instance();
 		
-		simface.setDebug(true);
+		simface.setDebug(false);
 
 		simface.setWorkloadModel(new WorkloadModel() {
 			@Override
 			public void init(String configPath) {
-				SimulationInterface.instance().submitJob(new SWFJob(0, 100, 5)); // long job 0 -> 100
-				SimulationInterface.instance().submitJob(new SWFJob(0, 100, 5)); // long job 100 -> 200
-				SimulationInterface.instance().submitJob(new SWFJob(0, 100, 5)); // long job 200 -> 300
-				SimulationInterface.instance().submitJob(new SWFJob(0, 50, 5)); // short job 300 -> 350
+				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 2)); // long job 0 -> 100
+				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 4)); // long job 100 -> 200
+				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 1)); // long job 200 -> 300
+				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 5)); // short job 300 -> 350
 			}
 		});
 
