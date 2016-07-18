@@ -95,8 +95,12 @@ public class SimulationInterface {
 		return t_end;
 	}
 
-	// ** UBER SIMULATE METHOD ** //
+	public long getCurrentTime() {
+		return t_now;
+	}
 
+	// ** SIMULATE METHOD ** //
+	
 	@SuppressWarnings("unchecked")
 	public void simulate(String configPath) {
 		if(configPath != null) {
@@ -139,7 +143,6 @@ public class SimulationInterface {
 					log("Logger properties error or class not present");
 				}
 			}
-
 			scheduler.init(config_path + properties.getProperty("scheduler_config"));
 			model.init(config_path + properties.getProperty("model_config"));
 
@@ -157,7 +160,10 @@ public class SimulationInterface {
 			if(logger != null)
 				logger.init(null);
 		}
+		simulate();
+	}
 
+	public void simulate() {
 		t_now = t_begin;
 		t_next = t_end;
 		times[END] = t_end;
@@ -321,8 +327,9 @@ public class SimulationInterface {
 	// ** REGISTER METHODS ** //
 	
 	public void register(Logger logger) {
-		if(this.logger == null)
-			this.logger = logger;
+		unregisterLogger();
+		
+		this.logger = logger;
 		startedListeners.add(logger);
 		finishedListeners.add(logger);
 	}
@@ -340,11 +347,11 @@ public class SimulationInterface {
 	}
 
 	// ** UNREGISTER METHODS ** //
-	public void unregister(Logger logger) {
-		if(this.logger == logger)
-			this.logger = null;
+	
+	public void unregisterLogger() {
 		unregister((JobStartedListener)logger);
 		unregister((JobFinishedListener)logger);
+		logger = null;
 	}
 
 	public void unregister(JobFinishedListener listener) {

@@ -19,6 +19,7 @@ public class FCFS_Scheduler implements Scheduler<Job> {
 	private String configPath = null;
 	
 	public FCFS_Scheduler() {
+		res_max = Integer.MAX_VALUE;
 	}
 	
 	public FCFS_Scheduler(int resources_max) {

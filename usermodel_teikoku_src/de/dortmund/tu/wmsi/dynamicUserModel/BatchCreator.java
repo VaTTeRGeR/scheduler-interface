@@ -57,7 +57,7 @@ public class BatchCreator {
 		j.setSubmitTime(t_start);
 		batch.add(j);
 		
-		System.out.println("Add job to batchat time: " + j.getSubmitTime());
+		System.out.println("Add job to batch at time: " + j.getSubmitTime());
 		int CORES = j.getRequestedNumberOfProcessors();
 
 		int batchsize = this.sampleBatchSize();
@@ -71,7 +71,7 @@ public class BatchCreator {
 			j.setRequestedNumberOfProcessors(CORES);
 			batch.add(j);
 			
-			System.out.println("Add job to batchat time: " + j.getSubmitTime());
+			System.out.println("Add job to batch at time: " + j.getSubmitTime());
 		}	
 
 		return batch;
