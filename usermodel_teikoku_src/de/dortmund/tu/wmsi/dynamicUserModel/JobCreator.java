@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 
-import de.irf.it.rmg.core.teikoku.workload.swf.SWFJob;
+import de.dortmund.tu.wmsi.job.SWFJob;
 
 public class JobCreator {
 	
@@ -139,8 +139,8 @@ public class JobCreator {
 			numberOfProcessors = numberOfProvidedResources;
 		}
 		
-		j.setRequestedNumberOfProcessors(numberOfProcessors);
-		j.setNumberOfAllocatedProcessors(numberOfProcessors);	//TODO adjust, see Mira?
+		j.set(SWFJob.RESOURCES_REQUESTED, numberOfProcessors);
+		j.set(SWFJob.RESOURCES_ALLOCATED, numberOfProcessors);
 		
 		j.setRunTime(jobLength);
 		j.setRequestedTime(jobLength); //important for EASY //TODO add runtimeModel

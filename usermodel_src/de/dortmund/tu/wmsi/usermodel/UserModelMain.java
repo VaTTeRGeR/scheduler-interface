@@ -11,8 +11,14 @@ public class UserModelMain {
 
 		si.setDebug(true);
 
-		si.setScheduler(new FCFS_Scheduler());
-		si.setWorkloadModel(new UserWorkloadModel());
+		FCFS_Scheduler scheduler = new FCFS_Scheduler();
+		scheduler.setMaxResources(10);
+		
+		si.setScheduler(scheduler);
+		
+		UserWorkloadModel model = new UserWorkloadModel();
+		model.configure("config/usermodel.properties");
+		si.setWorkloadModel(model);
 		
 		si.simulate();
 	}

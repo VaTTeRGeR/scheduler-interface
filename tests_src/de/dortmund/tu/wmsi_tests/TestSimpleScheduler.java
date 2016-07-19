@@ -19,10 +19,10 @@ public class TestSimpleScheduler {
 
 			@Override
 			public void initialize() {
-				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 2)); // long job 0 -> 100
-				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 4)); // long job 100 -> 200
-				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 1)); // long job 200 -> 300
-				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 5)); // short job 300 -> 350
+				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 2)); // 0 -> 1
+				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 4)); // 1 -> 2
+				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 1)); // 1 -> 2
+				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 5)); // 2 -> 3
 			}
 		});
 

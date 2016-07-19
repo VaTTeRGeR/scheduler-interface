@@ -3,7 +3,6 @@ package de.dortmund.tu.wmsi;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
-import java.util.Properties;
 
 import de.dortmund.tu.wmsi.event.JobEvent;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
@@ -17,7 +16,7 @@ import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.EventTimeComparator;
 import de.dortmund.tu.wmsi.util.JobSubmitComparator;
-import de.dortmund.tu.wmsi.util.Util;
+import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
 public class SimulationInterface {
 
@@ -108,19 +107,19 @@ public class SimulationInterface {
 	@SuppressWarnings("unchecked")
 	public void configure(String configPath) {
 		if(configPath != null) {
-			Properties properties = Util.getProperties(configPath);
+			PropertiesHandler properties = new PropertiesHandler(configPath);
 
-			String config_path = properties.getProperty("config_path", new String());
+			String config_path = properties.getString("config_path", new String());
 
-			setSimulationBeginTime(Long.parseLong(properties.getProperty("start_time", "0")));
-			setSimulationEndTime(Long.parseLong(properties.getProperty("end_time", String.valueOf(Long.MAX_VALUE))));
+			setSimulationBeginTime(properties.getLong("start_time", 0));
+			setSimulationEndTime(properties.getLong("end_time", Long.MAX_VALUE));
 
-			setDebug(Boolean.parseBoolean(properties.getProperty("debug", " false")));
+			setDebug(properties.getBoolean("debug", false));
 
 			try {
-				scheduler = (Scheduler<? extends Job>) Class.forName(properties.getProperty("scheduler_package") + "." + properties.getProperty("scheduler")).newInstance();
+				scheduler = (Scheduler<? extends Job>) Class.forName(properties.getString("scheduler_package", null) + "." + properties.getString("scheduler", null)).newInstance();
 				setScheduler(scheduler);
-				scheduler.configure(config_path + properties.getProperty("scheduler_config"));
+				scheduler.configure(config_path + properties.getString("scheduler_config", null));
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 				e.printStackTrace();
 				log("Scheduler properties error or class not present");
@@ -128,22 +127,22 @@ public class SimulationInterface {
 			}
 
 			try {
-				model = (WorkloadModel) Class.forName(properties.getProperty("model_package") + "." + properties.getProperty("model")).newInstance();
+				model = (WorkloadModel) Class.forName(properties.getString("model_package", null) + "." + properties.getString("model", null)).newInstance();
 				setWorkloadModel(model);
-				model.configure(config_path + properties.getProperty("model_config"));
+				model.configure(config_path + properties.getString("model_config" , null));
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 				e.printStackTrace();
 				log("Model properties error or class not present");
 				return;
 			}
 
-			if (properties.containsKey("logger")) {
+			if (properties.has("logger")) {
 				try {
 					logger = (Logger) Class
-							.forName(properties.getProperty("logger_package") + "." + properties.getProperty("logger"))
+							.forName(properties.getString("logger_package", null) + "." + properties.getString("logger", null))
 							.newInstance();
 					register(logger);
-					logger.configure(config_path + properties.getProperty("logger_config"));
+					logger.configure(config_path + properties.getString("logger_config", null));
 				} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 					e.printStackTrace();
 					log("Logger properties error or class not present");
@@ -388,7 +387,7 @@ public class SimulationInterface {
 		}
 	}
 
-	// ** SCHEDULER METHODS **//
+	// ** SCHEDULER METHODS ** //
 
 	public void setScheduler(Scheduler<? extends Job> scheduler) {
 		this.scheduler = scheduler;

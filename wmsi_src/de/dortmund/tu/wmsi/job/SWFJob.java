@@ -4,7 +4,7 @@ public class SWFJob extends Job {
 	
 	private long[] values = new long[18];
 	
-	public static final int JOB_NUMBER = 0;
+	public static final int JOB_ID = 0;
 	public static final int SUBMIT_TIME = 1;
 	public static final int WAIT_TIME = 2;
 	public static final int RUN_TIME = 3;
@@ -29,7 +29,7 @@ public class SWFJob extends Job {
 	
 	public SWFJob(int id) {
 		super(id);
-		values[JOB_NUMBER] = getJobId();
+		values[JOB_ID] = getJobId();
 		for (int i = 1; i < values.length; i++) {
 			values[i] = -1L;
 		}

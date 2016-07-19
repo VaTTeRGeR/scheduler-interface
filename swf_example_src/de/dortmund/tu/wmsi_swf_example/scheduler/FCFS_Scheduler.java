@@ -2,36 +2,42 @@ package de.dortmund.tu.wmsi_swf_example.scheduler;
 
 import java.util.Collections;
 import java.util.LinkedList;
-import java.util.Properties;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
 import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
-import de.dortmund.tu.wmsi.util.Util;
+import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
 public class FCFS_Scheduler implements Scheduler<Job> {
 
 	private LinkedList<Job> queue = new LinkedList<Job>();
 	private LinkedList<JobFinishEntry> schedule = new LinkedList<JobFinishEntry>();
-	private int res_max, res_used;
+	private int res_max = -1, res_used = 0;
 	
 	public FCFS_Scheduler() {
-		res_max = Integer.MAX_VALUE;
 	}
 	
 	public FCFS_Scheduler(int resources_max) {
-		res_max = resources_max;
+		setMaxResources(resources_max);
 	}
 	
 	public FCFS_Scheduler(String manualConfigPath) {
 		configure(manualConfigPath);
 	}
 	
+	public void setMaxResources(int res_max) {
+		this.res_max = res_max;
+	}
+	
 	@Override
 	public void initialize() {
 		res_used = 0;
+		if(res_max == -1)
+			throw new IllegalStateException("FCFS_Scheduler has no resource count configured");
+		else if(res_max < 0)
+			throw new IllegalStateException("FCFS_Scheduler has a negative resource count configured");
 	}
 
 	@Override
@@ -41,9 +47,9 @@ public class FCFS_Scheduler implements Scheduler<Job> {
 		
 		SimulationInterface.log("loading: "+configPath);
 
-		Properties properties = Util.getProperties(configPath);
+		PropertiesHandler properties = new PropertiesHandler(configPath);
 		
-		res_max = Integer.parseInt(properties.getProperty("resources","1024"));
+		setMaxResources(properties.getInt("resources", 1024));
 	}
 	
 	@Override
