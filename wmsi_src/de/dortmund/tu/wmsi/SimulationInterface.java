@@ -66,7 +66,7 @@ public class SimulationInterface {
 	
 	public static void destroy() {
 		if (instance == null)
-			throw new NullPointerException("Create an instance of SimulationInterface before calling the destroy method.");
+			throw new IllegalStateException("Create an instance of SimulationInterface before calling the destroy method.");
 		else
 			instance = null;
 	}
@@ -99,10 +99,14 @@ public class SimulationInterface {
 		return t_now;
 	}
 
+	public boolean getDebug() {
+		return SimulationInterface.debug;
+	}
+
 	// ** SIMULATE METHOD ** //
 	
 	@SuppressWarnings("unchecked")
-	public void simulate(String configPath) {
+	public void configure(String configPath) {
 		if(configPath != null) {
 			Properties properties = Util.getProperties(configPath);
 
@@ -116,6 +120,7 @@ public class SimulationInterface {
 			try {
 				scheduler = (Scheduler<? extends Job>) Class.forName(properties.getProperty("scheduler_package") + "." + properties.getProperty("scheduler")).newInstance();
 				setScheduler(scheduler);
+				scheduler.configure(config_path + properties.getProperty("scheduler_config"));
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 				e.printStackTrace();
 				log("Scheduler properties error or class not present");
@@ -125,6 +130,7 @@ public class SimulationInterface {
 			try {
 				model = (WorkloadModel) Class.forName(properties.getProperty("model_package") + "." + properties.getProperty("model")).newInstance();
 				setWorkloadModel(model);
+				model.configure(config_path + properties.getProperty("model_config"));
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 				e.printStackTrace();
 				log("Model properties error or class not present");
@@ -137,33 +143,34 @@ public class SimulationInterface {
 							.forName(properties.getProperty("logger_package") + "." + properties.getProperty("logger"))
 							.newInstance();
 					register(logger);
-					logger.init(config_path + properties.getProperty("logger_config"));
+					logger.configure(config_path + properties.getProperty("logger_config"));
 				} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 					e.printStackTrace();
 					log("Logger properties error or class not present");
 				}
 			}
-			scheduler.init(config_path + properties.getProperty("scheduler_config"));
-			model.init(config_path + properties.getProperty("model_config"));
-
 		} else {
-			if(scheduler != null)
-				scheduler.init(null);
-			else
-				throw new IllegalStateException("No Scheduler set");
-			
-			if(model != null)
-				model.init(null);
-			else
-				throw new IllegalStateException("No Scheduler set");
-			
-			if(logger != null)
-				logger.init(null);
+			throw new IllegalStateException("Cannot configure if no config path is given");
 		}
-		simulate();
 	}
 
 	public void simulate() {
+		if(model == null)
+			throw new IllegalStateException("Cannot simulate without a workload model");
+		else
+			model.initialize();
+			
+		if(scheduler == null)
+			throw new IllegalStateException("Cannot simulate without a scheduler");
+		else
+			scheduler.initialize();
+			
+		if(logger == null)
+			log("No logger set");
+		else
+			logger.initialize();
+			
+			
 		t_now = t_begin;
 		t_next = t_end;
 		times[END] = t_end;

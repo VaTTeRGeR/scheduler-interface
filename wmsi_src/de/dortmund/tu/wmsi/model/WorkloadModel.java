@@ -1,5 +1,6 @@
 package de.dortmund.tu.wmsi.model;
 
 public interface WorkloadModel {
-	public void init(String configPath);
+	public void initialize();
+	public void configure(String configPath);
 }

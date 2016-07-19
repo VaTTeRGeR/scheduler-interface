@@ -30,7 +30,7 @@ public class GenericLogger implements Logger {
 	}
 
 	@Override
-	public void init(String configPath) {
+	public void initialize() {
 		SimulationInterface.instance().register(new WorkloadModelRoutine(new RoutineTimingOnce(SimulationInterface.instance().getSimulationEndTime()-1L)) {
 			@Override
 			protected void process(long t_now) {
@@ -43,7 +43,7 @@ public class GenericLogger implements Logger {
 			}
 		});
 	}
-	
-	
 
+	@Override
+	public void configure(String configPath) {}
 }

@@ -9,12 +9,12 @@ public class UserModelMain {
 	public static void main(String[] args) {
 		SimulationInterface si = SimulationInterface.instance();
 
-		si.setDebug(false);
+		si.setDebug(true);
 
 		si.setScheduler(new FCFS_Scheduler());
 		si.setWorkloadModel(new UserWorkloadModel());
 		
-		si.simulate(null);
+		si.simulate();
 	}
 
 }

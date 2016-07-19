@@ -22,9 +22,10 @@ public class MainCommandLine {
 					break;
 				}
 			}
-			if(configPath != null)
-				simface.simulate(configPath);
-			else 
+			if(configPath != null) {
+				simface.configure(configPath);
+				simface.simulate();
+			} else
 				System.err.println("A config path needs to be provided via -f [configpath]");
 		}
 	}

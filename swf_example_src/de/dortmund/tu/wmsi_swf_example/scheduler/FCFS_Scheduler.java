@@ -16,7 +16,6 @@ public class FCFS_Scheduler implements Scheduler<Job> {
 	private LinkedList<Job> queue = new LinkedList<Job>();
 	private LinkedList<JobFinishEntry> schedule = new LinkedList<JobFinishEntry>();
 	private int res_max, res_used;
-	private String configPath = null;
 	
 	public FCFS_Scheduler() {
 		res_max = Integer.MAX_VALUE;
@@ -27,21 +26,24 @@ public class FCFS_Scheduler implements Scheduler<Job> {
 	}
 	
 	public FCFS_Scheduler(String manualConfigPath) {
-		this.configPath = manualConfigPath;
+		configure(manualConfigPath);
 	}
 	
 	@Override
-	public void init(String configPath) {
-		if(configPath != null)
-			this.configPath = configPath;
-		
-		if(this.configPath != null) {
-			SimulationInterface.log("loading: "+this.configPath);
-			Properties properties = Util.getProperties(this.configPath);
-		
-			res_max = Integer.parseInt(properties.getProperty("resources","1024"));
-		}
+	public void initialize() {
 		res_used = 0;
+	}
+
+	@Override
+	public void configure(String configPath) {
+		if(configPath == null)
+			throw new NullPointerException("configPath should not be null");
+		
+		SimulationInterface.log("loading: "+configPath);
+
+		Properties properties = Util.getProperties(configPath);
+		
+		res_max = Integer.parseInt(properties.getProperty("resources","1024"));
 	}
 	
 	@Override

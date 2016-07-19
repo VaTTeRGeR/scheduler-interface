@@ -8,14 +8,19 @@ import de.dortmund.tu.wmsi.job.SWFJob;
 import de.dortmund.tu.wmsi.model.WorkloadModel;
 import de.dortmund.tu.wmsi.util.Util;
 
-public class SWF_Reader_Model implements WorkloadModel {
+public class SWFReaderModel implements WorkloadModel {
 
+	Properties properties;
+	
 	@Override
-	public void init(String configPath) {
+	public void configure(String configPath) {
 		SimulationInterface.log("loading: "+configPath);
 		
-		Properties properties = Util.getProperties(configPath);
+		properties = Util.getProperties(configPath);
+	}
 
+	@Override
+	public void initialize() {
 		String swfPath = properties.getProperty("swf_file");
 		if(swfPath == null || !(new File(swfPath).exists())) {
 			SimulationInterface.log("SWF-File: " + swfPath + " does not exist!");

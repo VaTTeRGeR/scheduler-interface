@@ -16,28 +16,37 @@ import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
 import de.dortmund.tu.wmsi.routine.timing.RoutineTimingOnce;
 import de.dortmund.tu.wmsi.util.Util;
 
-public class SWF_Logger implements Logger {
+public class SWFLogger implements Logger {
 
 	private Queue<String> log = new LinkedList<String>();
 	private static final String seperator = "\t";
+	private Properties properties = null;
 	
 	@Override
-	public void init(final String configPath) {
+	public void initialize() {
+		if(properties != null) {
+			final String swfPath = properties.getProperty("swf_output_file");
+			final boolean printToConsole = Boolean.parseBoolean(properties.getProperty("print_to_console", "false"));
+
+			SimulationInterface.instance()
+					.register(new WorkloadModelRoutine(new RoutineTimingOnce(Long.MAX_VALUE - 1)) {
+						@Override
+						public void process(long time) {
+							saveLog(swfPath);
+							if (printToConsole) {
+								printLog();
+							}
+						}
+					});
+		} else {
+			throw new IllegalStateException("SWFLogger was not configured");
+		}
+	}
+
+	@Override
+	public void configure(final String configPath) {
 		SimulationInterface.log("loading: "+configPath);
-		Properties properties = Util.getProperties(configPath);
-
-		final String swfPath = properties.getProperty("swf_output_file");
-		final boolean printToConsole = Boolean.parseBoolean(properties.getProperty("print_to_console", "false"));
-
-		SimulationInterface.instance().register(new WorkloadModelRoutine(new RoutineTimingOnce(Long.MAX_VALUE-1)) {
-			@Override
-			public void process(long time) {
-				saveLog(swfPath);
-				if(printToConsole) {
-					printLog();
-				}
-			}
-		});
+		properties = Util.getProperties(configPath);
 	}
 
 	@Override

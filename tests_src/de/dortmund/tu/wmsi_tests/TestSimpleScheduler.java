@@ -14,7 +14,11 @@ public class TestSimpleScheduler {
 
 		simface.setWorkloadModel(new WorkloadModel() {
 			@Override
-			public void init(String configPath) {
+			public void configure(String configPath) {
+			}
+
+			@Override
+			public void initialize() {
 				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 2)); // long job 0 -> 100
 				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 4)); // long job 100 -> 200
 				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 1)); // long job 200 -> 300
@@ -26,6 +30,6 @@ public class TestSimpleScheduler {
 
 		simface.register(new GenericLogger());
 
-		simface.simulate(null);
+		simface.simulate();
 	}
 }

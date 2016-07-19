@@ -17,9 +17,15 @@ public class UserWorkloadModel implements WorkloadModel{
 	}
 	
 	@Override
-	public void init(String configPath) {
+	public void initialize() {
+		//TODO create Users etc
+	}
+	
+	@Override
+	public void configure(String configPath) {
 		if(configPath != null) {
 			Properties properties = Util.getProperties(configPath);
+			//TODO load config
 		}
 	}
 }

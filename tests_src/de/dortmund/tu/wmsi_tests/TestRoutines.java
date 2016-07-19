@@ -24,7 +24,10 @@ public class TestRoutines {
 		
 		simface.setWorkloadModel(new WorkloadModel() {
 			@Override
-			public void init(String configPath) {
+			public void configure(String configPath) {}
+
+			@Override
+			public void initialize() {
 				//Should execute at: 0, 1000, 2000, etc
 				simface.register(new WorkloadModelRoutine(new RoutineTimingInterval(0, 1000)) {
 					
@@ -80,7 +83,6 @@ public class TestRoutines {
 						System.out.println("Multiple routine executing at "+t_now+".");
 					}
 				});
-
 			}
 		});
 
@@ -102,6 +104,6 @@ public class TestRoutines {
 		
 		simface.register(new GenericLogger());
 		
-		simface.simulate(null);
+		simface.simulate();
 	}
 }
