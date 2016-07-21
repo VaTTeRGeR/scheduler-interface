@@ -16,19 +16,9 @@ public class FCFS_Scheduler implements Scheduler<Job> {
 	private LinkedList<JobFinishEntry> schedule = new LinkedList<JobFinishEntry>();
 	private int res_max = -1, res_used = 0;
 	
-	public FCFS_Scheduler() {
-	}
-	
-	public FCFS_Scheduler(int resources_max) {
-		setMaxResources(resources_max);
-	}
-	
-	public FCFS_Scheduler(String manualConfigPath) {
-		configure(manualConfigPath);
-	}
-	
-	public void setMaxResources(int res_max) {
+	public FCFS_Scheduler setMaxResources(int res_max) {
 		this.res_max = res_max;
+		return this;
 	}
 	
 	@Override
@@ -113,10 +103,5 @@ public class FCFS_Scheduler implements Scheduler<Job> {
 		public int compareTo(JobFinishEntry other) {
 			return (int)(end-other.end);
 		}
-	}
-
-	@Override
-	public boolean canProcess(Job job) {
-		return true;
 	}
 }

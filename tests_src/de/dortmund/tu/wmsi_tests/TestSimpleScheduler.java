@@ -26,7 +26,7 @@ public class TestSimpleScheduler {
 			}
 		});
 
-		simface.setScheduler(new FCFS_Scheduler(5));
+		simface.setScheduler(new FCFS_Scheduler().setMaxResources(5));
 
 		simface.register(new GenericLogger());
 

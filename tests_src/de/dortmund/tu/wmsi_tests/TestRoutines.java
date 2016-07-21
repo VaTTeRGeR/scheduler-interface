@@ -86,7 +86,7 @@ public class TestRoutines {
 			}
 		});
 
-		simface.setScheduler(new FCFS_Scheduler(Integer.MAX_VALUE));
+		simface.setScheduler(new FCFS_Scheduler().setMaxResources(Integer.MAX_VALUE));
 		
 		simface.register(new JobFinishedListener() {
 			@Override

@@ -253,10 +253,7 @@ public class SimulationInterface {
 					nextRoutine.startProcessing(t_now);
 				} else if(winner == SUBMIT) {
 					log("passing job "+jobs.peek().getJobId()+" to scheduler");
-					if(scheduler.canProcess(jobs.peek()))
-						scheduler.enqueueJob(jobs.poll());
-					else
-						throw new IllegalStateException();
+					scheduler.enqueueJob(jobs.poll());
 				} else {
 					log("no routine execution or job submit");
 				}

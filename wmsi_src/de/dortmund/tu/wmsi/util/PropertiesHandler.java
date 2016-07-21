@@ -12,10 +12,11 @@ public class PropertiesHandler {
 		if(configPath == null) {
 			throw new IllegalStateException("the path cannot be null.");
 		}
+		
 		properties = new Properties();
-		BufferedInputStream stream;
+		
 		try {
-			stream = new BufferedInputStream(new FileInputStream(configPath));
+			BufferedInputStream stream = new BufferedInputStream(new FileInputStream(configPath));
 			properties.load(stream);
 			stream.close();
 		} catch (Exception e) {
@@ -38,7 +39,7 @@ public class PropertiesHandler {
 				return defaultValue;
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
-			throw new IllegalStateException("Field "+name+" does not contain a long value");
+			throw new IllegalStateException("Field "+name+" cannot be interpreted as a long value");
 		}
 	}
 	
@@ -50,7 +51,7 @@ public class PropertiesHandler {
 				return defaultValue;
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new IllegalStateException("Field "+name+" does not contain an integer value");
+			throw new IllegalStateException("Field "+name+" cannot be interpreted as an integer value");
 		}
 	}
 
@@ -61,7 +62,7 @@ public class PropertiesHandler {
 			else
 				return defaultValue;
 		} catch (Exception e) {
-			throw new IllegalStateException("Field "+name+" does not contain an boolean value");
+			throw new IllegalStateException("Field "+name+" cannot be interpreted as a boolean value");
 		}
 	}
 

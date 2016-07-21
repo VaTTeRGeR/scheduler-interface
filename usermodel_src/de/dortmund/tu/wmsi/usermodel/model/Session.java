@@ -4,8 +4,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.SWFJob;
+import de.dortmund.tu.wmsi.usermodel.util.UserModelTimeHelper;
 
 public class Session {
 	
@@ -72,7 +74,7 @@ public class Session {
 	 * @param event
 	 */
 	public void deliverEvent(JobStartedEvent event) {
-		long now = TimeHelper.toLongValue(Clock.instance().now()) / 1000;
+		long now = SimulationInterface.instance().getCurrentTime();
 		SWFJob runningJob = (SWFJob) event.getJob();
 		
 		long submittime = runningJob.getSubmitTime();

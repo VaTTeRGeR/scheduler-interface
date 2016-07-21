@@ -7,5 +7,4 @@ public interface Scheduler<T extends Job> {
 	public void configure(String configPath);
 	public long simulateUntil(long t_now, long t_target);
 	public void enqueueJob(Job job);
-	public boolean canProcess(Job job);
 }

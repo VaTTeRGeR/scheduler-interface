@@ -1,5 +1,7 @@
 package de.dortmund.tu.wmsi.dynamicUserModel;
 
+import java.util.Arrays;
+
 import de.irf.it.rmg.core.teikoku.runtime.events.JobStartedEvent;
 import de.irf.it.rmg.core.teikoku.workload.swf.SWFJob;
 import de.irf.it.rmg.util.time.DateHelper;
@@ -16,13 +18,11 @@ public class ThinktimeLogger {
 	
 	public ThinktimeLogger(int numberOfUsers) {
 		currentBatchStart = new long[numberOfUsers];
-		for (int i = 0; i< numberOfUsers ; i++) {
-			currentBatchStart[i] = 0;
-		}
 		currentBatchEnd = new long[numberOfUsers];
-		for (int i = 0; i< numberOfUsers ; i++) {
-			currentBatchEnd[i] = 0;
-		}
+
+		Arrays.fill(currentBatchStart, 0);
+		Arrays.fill(currentBatchEnd, 0);
+
 		currentAverageThinkTime = 0;
 	}
 	

@@ -70,6 +70,7 @@ public class BatchCreator {
 			j = jobcreator.createJob();
 			j.set(SWFJob.SUBMIT_TIME, t_start);
 			j.set(SWFJob.RESOURCES_REQUESTED, CORES);
+			j.set(SWFJob.USER_ID, user.getUserId());
 			batch.add(j);
 			
 			System.out.println("Add job to batch at time: " + j.getSubmitTime());
