@@ -26,16 +26,14 @@ public class JobCreator {
 	public JobCreator(User user) {
 		this.user = user;
 		
-		//TODO MATH
 		this.numberOfProvidedResources 	= user.getNumberOfProvidedResources();
 		
-		//TODO MATH
 		initializeCoreDistribution(user.getDistributionString());
 		initializeRuntimeDistribution(user.getRuntimeString());
 		initializeMuhat(user.getRuntimeMuhatString());
 		initializeSigmahat(user.getRuntimeSigmahatString());
 		
-		System.out.println("Job Creator started for User: " + user.getUserID());
+		System.out.println("Job Creator started for User: " + user.getUserId());
 	}
 
 	
@@ -45,8 +43,7 @@ public class JobCreator {
 	 * @param coreString
 	 */
 	private void initializeCoreDistribution(String coreString) {
-		List<String> singleCoreDistribution = Arrays
-				.asList(coreString.split(","));
+		List<String> singleCoreDistribution = Arrays.asList(coreString.split(","));
 		
 		this.coreDistribution = new double[singleCoreDistribution.size()];
 		
@@ -81,7 +78,7 @@ public class JobCreator {
 	 * @param runtimeMuhatString
 	 */
 	private void initializeMuhat(String runtimeMuhatString) {
-		System.out.println("User: " + user.getUserID());
+		System.out.println("User: " + user.getUserId());
 		
 		List<String> singleMuhat = Arrays
 				.asList(runtimeMuhatString.split(","));
@@ -202,7 +199,7 @@ public class JobCreator {
 	public SWFJob createBasicJob() {
 		SWFJob j = new SWFJob();
 		
-		j.set(SWFJob.USER_ID, this.user.getUserID());
+		j.set(SWFJob.USER_ID, this.user.getUserId());
 		j.set(SWFJob.JOB_ID, ++numberOfGeneratedJobs);
 
 		return j;

@@ -62,7 +62,7 @@ public class BatchCreator {
 		int CORES = (int)j.get(SWFJob.RESOURCES_REQUESTED);
 
 		int batchsize = this.sampleBatchSize();
-		System.out.println("User: " + user.getUserID() + " batchsize: " + batchsize);
+		System.out.println("User: " + user.getUserId() + " batchsize: " + batchsize);
 		
 		for (int i = 1; i <= batchsize-1; i++) {
 			t_start += this.sampleInterArrivalTime();

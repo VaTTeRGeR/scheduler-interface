@@ -10,7 +10,7 @@ import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
-public class FCFS_Scheduler implements Scheduler<Job> {
+public class FCFS_Scheduler implements Scheduler {
 
 	private LinkedList<Job> queue = new LinkedList<Job>();
 	private LinkedList<JobFinishEntry> schedule = new LinkedList<JobFinishEntry>();
@@ -39,7 +39,7 @@ public class FCFS_Scheduler implements Scheduler<Job> {
 
 		PropertiesHandler properties = new PropertiesHandler(configPath);
 		
-		setMaxResources(properties.getInt("resources", 1024));
+		setMaxResources(properties.getInt("resources", Integer.MAX_VALUE));
 	}
 	
 	@Override

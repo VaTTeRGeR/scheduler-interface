@@ -1,23 +1,17 @@
 package de.dortmund.tu.wmsi.usermodel.model;
 
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.concurrent.TimeUnit;
-
 import de.dortmund.tu.wmsi.SimulationInterface;
-import de.dortmund.tu.wmsi.event.JobFinishedEvent;
-import de.dortmund.tu.wmsi.job.Job;
-import de.dortmund.tu.wmsi.job.SWFJob;
-import de.dortmund.tu.wmsi.listener.JobFinishedListener;
+import de.dortmund.tu.wmsi.event.JobStartedEvent;
+import de.dortmund.tu.wmsi.listener.JobStartedListener;
 
-public class User implements JobFinishedListener {
+public class User implements JobStartedListener {
 	//General Setup
 	private int numberOfProvidedResources;
 	private int numberOfSimulatedWeeks;
 
 	//General User
 	private String name;
-	private short id;
+	private int id;
 
 	//Batch Model
 	private double batchSizeOne;
@@ -51,7 +45,7 @@ public class User implements JobFinishedListener {
 	
 	private JobCreator jobcreator;
 	
-	private BatchCreator batchcreator;
+	private BatchCreator batchCreator;
 	
 	private Behavior behavior;
 	
@@ -60,42 +54,49 @@ public class User implements JobFinishedListener {
 	private Session session;
 	
 	private boolean initialized;
+	
+	public void initialize() {
+		SimulationInterface.instance().register(this);
 
-	private LinkedList<Job> jobs = new LinkedList<Job>();
+		jobcreator = new JobCreator(this);
+		batchCreator = new BatchCreator(this);
+		behavior = new Behavior(this);
+		daycreator = new DayCreator(this);
+		session = null;
 
-	public User() {
-		SimulationInterface.instance().register((JobFinishedListener)this);
+		think();
 		
-		createBatch(SimulationInterface.instance().getSimulationBeginTime());
+		//initialized = true;
 	}
 	
-	private void createBatch(long t_submit) {
-		for (int i = 0; i < 5; i++) {
-			Job job = new SWFJob(t_submit, 1, 1);
-
-			jobs.add(job);
-			SimulationInterface.instance().submitJob(job);
+	private void think() {
+		if(session == null) {
+			long t_nextSession = behavior.startTimeNextSession(SimulationInterface.instance().getCurrentTime());
+			if(t_nextSession != -1) {
+				session = new Session(this);
+				session.start(t_nextSession);
+			} else {
+				kill();
+			}
 		}
 	}
-
+	
 	@Override
-	public void jobFinished(JobFinishedEvent event) {
-		jobs.remove(event.getJob());
-		if(jobs.isEmpty()) {
-			System.out.println("New Batch at " + new Date((event.getTime()+TimeUnit.HOURS.toSeconds(6))*1000L));
-			createBatch(event.getTime()+TimeUnit.HOURS.toSeconds(6));
-		}
+	public void jobStarted(JobStartedEvent event) {
+		session.deliverEvent(event);
+		
+		if(session.isTerminated())
+			session = null;
+		
+		think();
 	}
 	
-	public int getUserID() {
-		return id;
-	}
-
 	public void kill() {
-		SimulationInterface.instance().unregister((JobFinishedListener)this);
+		SimulationInterface.instance().unregister(this);
 	}
 
-	// ** Getters and Setters ** //
+	/** Getters and Setters **/
+
 	public int getNumberOfProvidedResources() {
 		return numberOfProvidedResources;
 	}
@@ -176,12 +177,12 @@ public class User implements JobFinishedListener {
 	}
 
 
-	public short getUserId() {
+	public int getUserId() {
 		return id;
 	}
 
 
-	public void setUserId(short userId) {
+	public void setUserId(int userId) {
 		this.id = userId;
 	}
 
@@ -357,12 +358,12 @@ public class User implements JobFinishedListener {
 
 
 	public BatchCreator getBatchcreator() {
-		return batchcreator;
+		return batchCreator;
 	}
 
 
 	public void setBatchcreator(BatchCreator batchcreator) {
-		this.batchcreator = batchcreator;
+		this.batchCreator = batchcreator;
 	}
 
 

@@ -55,6 +55,30 @@ public class PropertiesHandler {
 		}
 	}
 
+	public float getFloat(String name, float defaultValue){
+		try {
+			if(properties.containsKey(name))
+				return Float.valueOf(properties.getProperty(name));
+			else
+				return defaultValue;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IllegalStateException("Field "+name+" cannot be interpreted as a float value");
+		}
+	}
+
+	public double getDouble(String name, double defaultValue){
+		try {
+			if(properties.containsKey(name))
+				return Double.valueOf(properties.getProperty(name));
+			else
+				return defaultValue;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IllegalStateException("Field "+name+" cannot be interpreted as a double value");
+		}
+	}
+
 	public boolean getBoolean(String name, boolean defaultValue){
 		try {
 			if(properties.containsKey(name))

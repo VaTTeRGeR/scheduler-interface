@@ -51,7 +51,7 @@ public class SWFLogger implements Logger {
 			final boolean printToConsole = properties.getBoolean("print_to_console", false);
 
 			SimulationInterface.instance()
-					.register(new WorkloadModelRoutine(new RoutineTimingOnce(Long.MAX_VALUE - 1)) {
+					.register(new WorkloadModelRoutine(new RoutineTimingOnce(SimulationInterface.instance().getSimulationEndTime() - 1L)) {
 						@Override
 						public void process(long time) {
 							saveLog(swfPath);

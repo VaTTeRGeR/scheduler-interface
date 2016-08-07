@@ -7,7 +7,8 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 
 public class Behavior {
 	
-	private static long SECONDS_PER_HOUR = 3600;
+	private static long SECONDS_PER_MINUTE = 60;
+	private static long SECONDS_PER_HOUR = SECONDS_PER_MINUTE*60;
 	private static long SECONDS_PER_DAY = SECONDS_PER_HOUR * 24;
 	private static long SECONDS_PER_WEEK = SECONDS_PER_DAY * 7;
 	

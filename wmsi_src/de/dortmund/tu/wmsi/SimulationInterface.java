@@ -23,7 +23,7 @@ public class SimulationInterface {
 	private static SimulationInterface instance = null;
 
 	private WorkloadModel model = null;
-	private Scheduler<? extends Job> scheduler = null;
+	private Scheduler scheduler = null;
 	private Logger logger = null;
 
 	private final ArrayList<JobFinishedListener> finishedListeners = new ArrayList<JobFinishedListener>();
@@ -44,7 +44,7 @@ public class SimulationInterface {
 	private boolean jobsDirty = false;
 
 	private final long[] times = new long[3];
-	private final int	END = 0, ROUTINE = 1, SUBMIT = 2;
+	private final int END = 0, ROUTINE = 1, SUBMIT = 2;
 
 	private static boolean debug = true;
 
@@ -104,7 +104,6 @@ public class SimulationInterface {
 
 	// ** SIMULATE METHOD ** //
 	
-	@SuppressWarnings("unchecked")
 	public void configure(String configPath) {
 		if(configPath != null) {
 			PropertiesHandler properties = new PropertiesHandler(configPath);
@@ -117,7 +116,7 @@ public class SimulationInterface {
 			setDebug(properties.getBoolean("debug", false));
 
 			try {
-				scheduler = (Scheduler<? extends Job>) Class.forName(properties.getString("scheduler_package", null) + "." + properties.getString("scheduler", null)).newInstance();
+				scheduler = (Scheduler) Class.forName(properties.getString("scheduler_package", null) + "." + properties.getString("scheduler", null)).newInstance();
 				setScheduler(scheduler);
 				scheduler.configure(config_path + properties.getString("scheduler_config", null));
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
@@ -285,12 +284,18 @@ public class SimulationInterface {
 	// ** INTERFACE INNER METHODS ** //
 	
 	private void checkState() {
+		if(times[END] < t_now)
+			throw new IllegalStateException("t_end cannot be before t_now.");
 		if(times[ROUTINE] < t_now)
 			throw new IllegalStateException("the next routine execution time cannot be before t_now.");
 		if(times[SUBMIT] < t_now)
 			throw new IllegalStateException("the next submit cannot be before t_now.");
 		if(t_now > t_next)
 			throw new IllegalStateException("t_now cannot be ahead of t_next.");
+		if(t_begin > t_now)
+			throw new IllegalStateException("t_now cannot be lower than t_begin.");
+		if(t_end < t_now)
+			throw new IllegalStateException("t_now cannot be higher than t_end.");
 	}
 
 	/**
@@ -386,7 +391,7 @@ public class SimulationInterface {
 
 	// ** SCHEDULER METHODS ** //
 
-	public void setScheduler(Scheduler<? extends Job> scheduler) {
+	public void setScheduler(Scheduler scheduler) {
 		this.scheduler = scheduler;
 	}
 

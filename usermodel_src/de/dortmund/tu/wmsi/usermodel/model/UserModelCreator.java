@@ -1,48 +1,25 @@
 package de.dortmund.tu.wmsi.usermodel.model;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
+
+import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
 public class UserModelCreator {
 
-	private static UserModelCreator model;
-	
-	public static void main(String[] args) {
-		String configPath = "usermodel_config/CTC_easy.properties";
-		
-		model = new UserModelCreator();
-		
-		List<User> resultList = model.createUserList(configPath);
-	}
-	
-	
-	
-	public List<User> createUserList(String configPath) {
+	public static List<User> createUserList(String configPath) {
 		List<User> resultList = new LinkedList<User>();
 		
-		Properties properties = new Properties();
-		//load properties
-		try {
-			properties.load(new FileInputStream(configPath));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		PropertiesHandler properties = new PropertiesHandler(configPath);
 
 		//iteration for all users and append to user list
-		String usernamesPropertyString = properties.getProperty("setup_user");
+		String usernamesPropertyString = properties.getString("setup_user", null);
 		usernamesPropertyString = usernamesPropertyString.replaceAll("\\s","");
 		String[] usernames = usernamesPropertyString.split(",");
 		
 		
 		for ( String username : usernames) {
 			User u = createUser(properties, username);
-			this.createUser(properties, username);
 
 			resultList.add(u);
 			System.out.println(u.getBatchSizeMu());
@@ -52,10 +29,18 @@ public class UserModelCreator {
 	}
 	
 	
-	private User createUser(Properties properties, String username) {
+	private static User createUser(PropertiesHandler properties, String username) {
 		User u = new User();
 		
-		u.setBatchSizeMu(Double.parseDouble(properties.getProperty(username + ".batchSizeMu")));
+		u.setName(username);
+		u.setUserId(Integer.parseInt(username.substring(4)));
+		u.setNumberOfProvidedResources(properties.getInt("site.numberOfProvidedResources", 0));
+		u.setBatchSizeMu(properties.getDouble(username + ".batchSizeMu", 0));
+		u.setDistributionString(properties.getString(username + ".coreDistribution", null));
+		u.setDayDistributionString(properties.getString(username + ".dayDistribution", null));
+		u.setRuntimeString(properties.getString(username + ".runtimeDistribution", null));
+		u.setRuntimeMuhatString(properties.getString(username + ".runtimeMu", null));
+		u.setRuntimeSigmahatString(properties.getString(username + ".runtimeSigma", null));
 		
 		return u;
 	}
