@@ -9,7 +9,7 @@ import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.model.WorkloadModel;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
-public class DynamicUserWorkloadModel implements WorkloadModel{
+public class UserWorkloadModel implements WorkloadModel{
 	
 	List<User> users;
 	
@@ -26,11 +26,12 @@ public class DynamicUserWorkloadModel implements WorkloadModel{
 		SimulationInterface.instance().setSimulationBeginTime(t_start);
 		SimulationInterface.instance().setSimulationEndTime(t_start + TimeUnit.DAYS.toSeconds(7L*weeks));
 
-		users = UserModelCreator.createUserList(properties.getString("model.user_config", null));
-		for(User user : users)
-			user.initialize();
+		users = UserCreator.createUserList(properties.getString("model.user_config", null));
 	}
 
 	@Override
-	public void initialize() {}
+	public void initialize() {
+		for(User user : users)
+			user.initialize();
+	}
 }

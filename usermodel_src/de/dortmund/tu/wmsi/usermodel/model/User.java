@@ -3,6 +3,7 @@ package de.dortmund.tu.wmsi.usermodel.model;
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.listener.JobStartedListener;
+import de.dortmund.tu.wmsi.usermodel.util.UserModelTimeHelper;
 
 public class User implements JobStartedListener {
 	//General Setup
@@ -56,38 +57,46 @@ public class User implements JobStartedListener {
 	private boolean initialized;
 	
 	public void initialize() {
+		System.out.println("initializing user: "+getName());
+		
 		SimulationInterface.instance().register(this);
 
+		daycreator = new DayCreator(this);
 		jobcreator = new JobCreator(this);
 		batchCreator = new BatchCreator(this);
 		behavior = new Behavior(this);
-		daycreator = new DayCreator(this);
 		session = null;
-
+		
 		think();
 		
-		//initialized = true;
+		setInitialized(true);
+		
+		System.out.println();
 	}
 	
 	private void think() {
 		if(session == null) {
 			long t_nextSession = behavior.startTimeNextSession(SimulationInterface.instance().getCurrentTime());
 			if(t_nextSession != -1) {
+				System.out.println("new session at "+UserModelTimeHelper.toDays(t_nextSession)+ " days ("+t_nextSession+"s)");
 				session = new Session(this);
 				session.start(t_nextSession);
 			} else {
+				System.out.println("killing user " + getUserId() + " bc no new session started");
 				kill();
 			}
 		}
+		System.out.println("continuing current session");
 	}
 	
 	@Override
 	public void jobStarted(JobStartedEvent event) {
 		session.deliverEvent(event);
 		
-		if(session.isTerminated())
+		if(session.isTerminated()) {
 			session = null;
-		
+			System.out.println("current session finished after job "+event.getJob().getJobId()+" began");
+		}
 		think();
 	}
 	

@@ -62,6 +62,9 @@ public class Session {
 		
 		this.jobQueue.addAll(batch);
 		this.notFinishedJobs.addAll(batch);
+		for (SWFJob swfJob : batch) {
+			SimulationInterface.instance().submitJob(swfJob);
+		}
 	}
 	
 	

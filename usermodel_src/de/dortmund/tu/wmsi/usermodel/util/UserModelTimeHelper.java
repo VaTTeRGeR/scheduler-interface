@@ -1,5 +1,7 @@
 package de.dortmund.tu.wmsi.usermodel.util;
 
+import java.util.concurrent.TimeUnit;
+
 public class UserModelTimeHelper {
 
 	private static int SECONDS_PER_MINUTE	= 60;
@@ -30,5 +32,17 @@ public class UserModelTimeHelper {
 		int seconds = (int)secondsFromStart;
 		
 		return "#" + week + ", " + dayArray[day] + ", " + hour + ":" + minute + ":" + seconds;
+	}
+	
+	public static long toDays(long seconds) {
+		return TimeUnit.SECONDS.toDays(seconds);
+	}
+
+	public static long toWeeks(long seconds) {
+		return TimeUnit.SECONDS.toDays(seconds)/7L;
+	}
+
+	public static long toSeconds(long weeks) {
+		return TimeUnit.DAYS.toSeconds(weeks*7L);
 	}
 }

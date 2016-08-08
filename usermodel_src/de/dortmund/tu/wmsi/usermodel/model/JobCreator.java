@@ -118,8 +118,7 @@ public class JobCreator {
 	 */
 	public SWFJob createJob() {
 		SWFJob j = this.createBasicJob();
-		this.sampleJob(j);
-		
+		sampleJob(j);
 		return j;
 	}
 	

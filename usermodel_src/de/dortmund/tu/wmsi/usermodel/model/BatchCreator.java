@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.commons.math3.distribution.LogisticDistribution;
 
+import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.job.SWFJob;
 
 public class BatchCreator {
@@ -41,7 +42,7 @@ public class BatchCreator {
 	 * @return
 	 */
 	public List<SWFJob> createBatch() {
-		return createBatch(0);
+		return createBatch(SimulationInterface.instance().getSimulationBeginTime());
 	}
 	
 	
@@ -64,7 +65,7 @@ public class BatchCreator {
 		int batchsize = this.sampleBatchSize();
 		System.out.println("User: " + user.getUserId() + " batchsize: " + batchsize);
 		
-		for (int i = 1; i <= batchsize-1; i++) {
+		for (int i = 1; i < batchsize; i++) {
 			t_start += this.sampleInterArrivalTime();
 			
 			j = jobcreator.createJob();
@@ -73,7 +74,7 @@ public class BatchCreator {
 			j.set(SWFJob.USER_ID, user.getUserId());
 			batch.add(j);
 			
-			System.out.println("Add job to batch at time: " + j.getSubmitTime());
+			System.out.println("Add job to batch at time: " + j.getSubmitTime() + " with "+j.get(SWFJob.RESOURCES_REQUESTED)+" resources");
 		}	
 
 		return batch;

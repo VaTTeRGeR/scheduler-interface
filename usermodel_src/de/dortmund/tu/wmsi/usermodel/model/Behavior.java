@@ -10,8 +10,6 @@ public class Behavior {
 	private static long SECONDS_PER_MINUTE = 60;
 	private static long SECONDS_PER_HOUR = SECONDS_PER_MINUTE*60;
 	private static long SECONDS_PER_DAY = SECONDS_PER_HOUR * 24;
-	private static long SECONDS_PER_WEEK = SECONDS_PER_DAY * 7;
-	
 
 	User user;
 	
@@ -50,15 +48,17 @@ public class Behavior {
 	 * @param dayDistributionString
 	 */
 	private void initializeDayDistribution(String dayDistributionString) {
-		List<String> singleDayDistribution = Arrays
-				.asList(dayDistributionString.split(","));
-		this.dayDistribution = new double[singleDayDistribution.size()];
-		int currentDistributionIndex = 0;
-		for (String currentDistributionString : singleDayDistribution) {
-			this.dayDistribution[currentDistributionIndex] = Double.parseDouble(currentDistributionString);
-			++currentDistributionIndex;
+		dayDistributionString = dayDistributionString.replaceAll("\\s","");
+		List<String> splitDayDistString = Arrays.asList(dayDistributionString.split(","));
+		
+		dayDistribution = new double[splitDayDistString.size()];
+		
+		for (int i = 0; i < splitDayDistString.size(); i++) {
+			dayDistribution[i] = Double.parseDouble(splitDayDistString.get(i));
 		}
+		System.out.println("day distribution: " + Arrays.toString(dayDistribution));
 	}
+	
 	/**
 	 * Initialize whether active or not
 	 */
@@ -69,7 +69,7 @@ public class Behavior {
 		for (int i = 0 ; i < numberOfSimulatedWeeks ; i++) { 		//weeks
 			
 			double p = Math.random();
-			if (user.getUserId() == 184) {
+			if (user.getUserId() > 0) {
 				System.out.println("User: " + user.getUserId() + " Sampled value: " + p + " presenceRatio: " + presenceRatio);
 			}
 			boolean activeWeek = (p < presenceRatio);
@@ -89,8 +89,8 @@ public class Behavior {
 			}
 			
 		}
-		//System.out.println("start of days: " + Arrays.toString(startOfDays));
-		//System.out.println("lengths of days: " + Arrays.toString(lengthOfDays));
+		System.out.println("start of days: " + Arrays.toString(startOfDays));
+		System.out.println("lengths of days: " + Arrays.toString(lengthOfDays));
 	}
 	
 
