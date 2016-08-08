@@ -11,7 +11,7 @@ public class JobCreator {
 	
 	private User user;
 	
-	private int numberOfGeneratedJobs = 0;
+	private static int numberOfGeneratedJobs = 0;
 	
 	private static int PROCESSORS[] = { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 8192*2, 8192*4, 8192*8, 8192*16, 8192*32, 8192*64 };
 	
