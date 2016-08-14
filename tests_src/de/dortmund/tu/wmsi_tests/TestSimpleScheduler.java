@@ -1,7 +1,7 @@
 package de.dortmund.tu.wmsi_tests;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
-import de.dortmund.tu.wmsi.job.SWFJob;
+import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.logger.GenericLogger;
 import de.dortmund.tu.wmsi.model.WorkloadModel;
 import de.dortmund.tu.wmsi_swf_example.scheduler.FCFS_Scheduler;
@@ -19,10 +19,10 @@ public class TestSimpleScheduler {
 
 			@Override
 			public void initialize() {
-				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 2)); // 0 -> 1
-				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 4)); // 1 -> 2
-				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 1)); // 1 -> 2
-				SimulationInterface.instance().submitJob(new SWFJob(0, 1, 5)); // 2 -> 3
+				SimulationInterface.instance().submitJob(new Job(0, 1, 2)); // 0 -> 1
+				SimulationInterface.instance().submitJob(new Job(0, 1, 4)); // 1 -> 2
+				SimulationInterface.instance().submitJob(new Job(0, 1, 1)); // 1 -> 2
+				SimulationInterface.instance().submitJob(new Job(0, 1, 5)); // 2 -> 3
 			}
 		});
 

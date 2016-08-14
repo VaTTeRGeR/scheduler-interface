@@ -3,7 +3,7 @@ package de.dortmund.tu.wmsi_tests;
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
 import de.dortmund.tu.wmsi.event.JobStartedEvent;
-import de.dortmund.tu.wmsi.job.SWFJob;
+import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.listener.JobFinishedListener;
 import de.dortmund.tu.wmsi.listener.JobStartedListener;
 import de.dortmund.tu.wmsi.logger.GenericLogger;
@@ -35,7 +35,7 @@ public class TestRoutines {
 					protected void process(long t_now) {
 						System.out.println("Random job submit Routine executed at "+t_now+".");
 						if(Math.random() > 0.5) {
-							simface.submitJob(new SWFJob(t_now, 50, 10));
+							simface.submitJob(new Job(t_now, 50, 10));
 							System.out.println("Routine submitted a job.");
 						} else {
 							System.out.println("Routine didn't submit a job.");

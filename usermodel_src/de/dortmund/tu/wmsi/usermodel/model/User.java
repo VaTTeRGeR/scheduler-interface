@@ -86,7 +86,7 @@ public class User implements JobStartedListener {
 				kill();
 			}
 		}
-		System.out.println("continuing current session");
+		//System.out.println("continuing current session");
 	}
 	
 	@Override

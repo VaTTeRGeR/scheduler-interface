@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.commons.math3.distribution.LogisticDistribution;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
-import de.dortmund.tu.wmsi.job.SWFJob;
+import de.dortmund.tu.wmsi.job.Job;
 
 public class BatchCreator {
 
@@ -41,7 +41,7 @@ public class BatchCreator {
 	 * 
 	 * @return
 	 */
-	public List<SWFJob> createBatch() {
+	public List<Job> createBatch() {
 		return createBatch(SimulationInterface.instance().getSimulationBeginTime());
 	}
 	
@@ -51,16 +51,16 @@ public class BatchCreator {
 	 * 
 	 * @return
 	 */
-	public List<SWFJob> createBatch(long t_start) {
-		List<SWFJob> batch = new LinkedList<SWFJob>();
+	public List<Job> createBatch(long t_start) {
+		List<Job> batch = new LinkedList<Job>();
 
-		SWFJob j = jobcreator.createJob();
+		Job j = jobcreator.createJob();
 		
-		j.set(SWFJob.SUBMIT_TIME, t_start);
+		j.set(Job.SUBMIT_TIME, t_start);
 		batch.add(j);
 		
 		System.out.println("Add job to batch at time: " + j.getSubmitTime());
-		int CORES = (int)j.get(SWFJob.RESOURCES_REQUESTED);
+		int CORES = (int)j.get(Job.RESOURCES_REQUESTED);
 
 		int batchsize = this.sampleBatchSize();
 		System.out.println("User: " + user.getUserId() + " batchsize: " + batchsize);
@@ -69,12 +69,12 @@ public class BatchCreator {
 			t_start += this.sampleInterArrivalTime();
 			
 			j = jobcreator.createJob();
-			j.set(SWFJob.SUBMIT_TIME, t_start);
-			j.set(SWFJob.RESOURCES_REQUESTED, CORES);
-			j.set(SWFJob.USER_ID, user.getUserId());
+			j.set(Job.SUBMIT_TIME, t_start);
+			j.set(Job.RESOURCES_REQUESTED, CORES);
+			j.set(Job.USER_ID, user.getUserId());
 			batch.add(j);
 			
-			System.out.println("Add job to batch at time: " + j.getSubmitTime() + " with "+j.get(SWFJob.RESOURCES_REQUESTED)+" resources");
+			System.out.println("Add job to batch at time: " + j.getSubmitTime() + " with "+j.get(Job.RESOURCES_REQUESTED)+" resources");
 		}	
 
 		return batch;

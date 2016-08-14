@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 
-import de.dortmund.tu.wmsi.job.SWFJob;
+import de.dortmund.tu.wmsi.job.Job;
 
 public class JobCreator {
 	
@@ -116,8 +116,8 @@ public class JobCreator {
 	 * Create 
 	 * @return
 	 */
-	public SWFJob createJob() {
-		SWFJob j = this.createBasicJob();
+	public Job createJob() {
+		Job j = this.createBasicJob();
 		sampleJob(j);
 		return j;
 	}
@@ -129,7 +129,7 @@ public class JobCreator {
 	 * @param j
 	 * @return
 	 */
-	public SWFJob sampleJob(SWFJob j) {
+	public Job sampleJob(Job j) {
 		int numberOfProcessors 	= this.sampleNumberOfProcessors();	
 		long jobLength 			= this.sampleJobLength(numberOfProcessors);
 		
@@ -137,11 +137,11 @@ public class JobCreator {
 			numberOfProcessors = numberOfProvidedResources;
 		}
 		
-		j.set(SWFJob.RESOURCES_REQUESTED, numberOfProcessors);
-		j.set(SWFJob.RESOURCES_ALLOCATED, numberOfProcessors);
+		j.set(Job.RESOURCES_REQUESTED, numberOfProcessors);
+		j.set(Job.RESOURCES_ALLOCATED, numberOfProcessors);
 		
-		j.set(SWFJob.RUN_TIME, jobLength);
-		j.set(SWFJob.TIME_REQUESTED, jobLength);
+		j.set(Job.RUN_TIME, jobLength);
+		j.set(Job.TIME_REQUESTED, jobLength);
 		
 		return j;
 	}
@@ -191,15 +191,15 @@ public class JobCreator {
 
 	
 	/**
-	 * Helping method to create an empty SWFJob
+	 * Helping method to create an empty Job
 	 * 
-	 * @return SWFJob with basic properties.
+	 * @return Job with basic properties.
 	 */
-	public SWFJob createBasicJob() {
-		SWFJob j = new SWFJob();
+	public Job createBasicJob() {
+		Job j = new Job();
 		
-		j.set(SWFJob.USER_ID, this.user.getUserId());
-		j.set(SWFJob.JOB_ID, ++numberOfGeneratedJobs);
+		j.set(Job.USER_ID, this.user.getUserId());
+		j.set(Job.JOB_ID, ++numberOfGeneratedJobs);
 
 		return j;
 	}

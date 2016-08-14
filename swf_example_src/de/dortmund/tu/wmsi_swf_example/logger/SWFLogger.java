@@ -9,7 +9,6 @@ import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
 import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
-import de.dortmund.tu.wmsi.job.SWFJob;
 import de.dortmund.tu.wmsi.logger.Logger;
 import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
 import de.dortmund.tu.wmsi.routine.timing.RoutineTimingOnce;
@@ -75,20 +74,18 @@ public class SWFLogger implements Logger {
 	public void jobFinished(JobFinishedEvent event) {
 		Job job = event.getJob();
 		
-		if(job instanceof SWFJob) {
-			long t_finish = event.getTime();
-			long t_wait = (t_finish - job.getRunDuration()) - job.getSubmitTime();
+		long t_finish = event.getTime();
+		long t_wait = (t_finish - job.getRunDuration()) - job.getSubmitTime();
 
-			SWFJob swfJob = (SWFJob)job;
-			swfJob.set(SWFJob.WAIT_TIME, t_wait);
+		Job swfJob = job;
+		swfJob.set(Job.WAIT_TIME, t_wait);
 			
-			StringBuilder builder = new StringBuilder();
-			for (int i = 0; i < 18; i++) {
-				builder.append(String.format("%12d", swfJob.get(i)));
-			}
-
-			log.add(builder.toString());
+		StringBuilder builder = new StringBuilder();
+		for (int i = 0; i < 18; i++) {
+			builder.append(String.format("%12d", swfJob.get(i)));
 		}
+
+		log.add(builder.toString());
 	}
 	
 	public String[] getLog() {

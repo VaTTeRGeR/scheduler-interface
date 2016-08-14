@@ -6,7 +6,7 @@ import java.util.Queue;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobStartedEvent;
-import de.dortmund.tu.wmsi.job.SWFJob;
+import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.usermodel.util.UserModelTimeHelper;
 
 public class Session {
@@ -18,8 +18,8 @@ public class Session {
 	private BatchCreator batchcreator;
 	private Behavior behavior;
 	
-	private Queue<SWFJob> jobQueue;
-	private Queue<SWFJob> notFinishedJobs;
+	private Queue<Job> jobQueue;
+	private Queue<Job> notFinishedJobs;
 	
 	private boolean terminated;
 	
@@ -35,8 +35,8 @@ public class Session {
 
 		this.terminated = false;
 
-		this.jobQueue 			= new LinkedList<SWFJob>();
-		this.notFinishedJobs 	= new LinkedList<SWFJob>();
+		this.jobQueue 			= new LinkedList<Job>();
+		this.notFinishedJobs 	= new LinkedList<Job>();
 	}
 
 	/**
@@ -56,14 +56,14 @@ public class Session {
 	private void addBatchToSession(long t_startBatch) {
 		System.out.println("NEW BATCH ADDED AT " + UserModelTimeHelper.time(t_startBatch) + " USER: " + user.getUserId());
 		
-		List<SWFJob> batch = batchcreator.createBatch(t_startBatch);
+		List<Job> batch = batchcreator.createBatch(t_startBatch);
 		
 		startTimeOfCurrentBatch = batch.get(0).getSubmitTime();
 		
 		this.jobQueue.addAll(batch);
 		this.notFinishedJobs.addAll(batch);
-		for (SWFJob swfJob : batch) {
-			SimulationInterface.instance().submitJob(swfJob);
+		for (Job job : batch) {
+			SimulationInterface.instance().submitJob(job);
 		}
 	}
 	
@@ -78,15 +78,15 @@ public class Session {
 	 */
 	public void deliverEvent(JobStartedEvent event) {
 		long now = SimulationInterface.instance().getCurrentTime();
-		SWFJob runningJob = (SWFJob) event.getJob();
+		Job runningJob = (Job) event.getJob();
 		
 		long submittime = runningJob.getSubmitTime();
-		long responsetime = now - submittime + runningJob.get(SWFJob.TIME_REQUESTED);
+		long responsetime = now - submittime + runningJob.get(Job.TIME_REQUESTED);
 
-		System.out.println("Starting job size: " +runningJob.get(SWFJob.RESOURCES_REQUESTED) + " at time: " + now + " finishing at: " + (now+ runningJob.get(SWFJob.TIME_REQUESTED)) );
+		//System.out.println("Starting job size: " +runningJob.get(Job.RESOURCES_REQUESTED) + " at time: " + now + " finishing at: " + (now+ runningJob.get(Job.TIME_REQUESTED)) );
 		
 		boolean foundDependency = false;
-		for (SWFJob j: this.notFinishedJobs) {		//look for job in dependency list						
+		for (Job j: this.notFinishedJobs) {		//look for job in dependency list						
 			if (j == runningJob) {
 				foundDependency = true;
 			}
@@ -111,7 +111,7 @@ public class Session {
 	}
 	
 	//Getters and Setters
-	public Queue<SWFJob> getJobQueue() {
+	public Queue<Job> getJobQueue() {
 		return this.jobQueue;
 	}
 
