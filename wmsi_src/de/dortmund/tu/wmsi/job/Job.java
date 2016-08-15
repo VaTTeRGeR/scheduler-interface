@@ -28,7 +28,7 @@ public class Job {
 	}
 	
 	public Job(long id) {
-		values[JOB_ID] = getJobId();
+		values[JOB_ID] = id;
 		for (int i = 1; i < values.length; i++) {
 			values[i] = -1L;
 		}

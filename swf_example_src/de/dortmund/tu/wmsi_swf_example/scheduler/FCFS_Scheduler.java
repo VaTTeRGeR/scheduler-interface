@@ -14,12 +14,7 @@ public class FCFS_Scheduler implements Scheduler {
 
 	private LinkedList<Job> queue = new LinkedList<Job>();
 	private LinkedList<JobFinishEntry> schedule = new LinkedList<JobFinishEntry>();
-	private int res_max = -1, res_used = 0;
-	
-	public FCFS_Scheduler setMaxResources(int res_max) {
-		this.res_max = res_max;
-		return this;
-	}
+	private long res_max = -1, res_used = 0;
 	
 	@Override
 	public void initialize() {
@@ -39,7 +34,12 @@ public class FCFS_Scheduler implements Scheduler {
 
 		PropertiesHandler properties = new PropertiesHandler(configPath);
 		
-		setMaxResources(properties.getInt("resources", Integer.MAX_VALUE));
+		setMaxResources(properties.getLong("resources", Long.MAX_VALUE));
+	}
+	
+	public FCFS_Scheduler setMaxResources(long res_max) {
+		this.res_max = res_max;
+		return this;
 	}
 	
 	@Override

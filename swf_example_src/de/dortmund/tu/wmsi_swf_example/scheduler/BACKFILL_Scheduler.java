@@ -10,20 +10,26 @@ import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
-public class EASY_Scheduler implements Scheduler {
+public class BACKFILL_Scheduler implements Scheduler {
 
 	private LinkedList<Job> queue = new LinkedList<Job>();
 	private LinkedList<JobFinishEntry> schedule = new LinkedList<JobFinishEntry>();
+	private LinkedList<Long> reservationTime = new LinkedList<Long>();
+	private LinkedList<Job> reservationJob = new LinkedList<Job>();
 	private long res_max = -1, res_used = 0;
-	private long endTimeLimit = Long.MIN_VALUE;
+	
+	public BACKFILL_Scheduler() {
+		if(true) throw new IllegalAccessError("DO NOT USE THIS CLASS WIP!");
+	}
 	
 	@Override
 	public void initialize() {
+		
 		res_used = 0;
 		if(res_max == -1)
-			throw new IllegalStateException("FCFS_Scheduler has no resource count configured");
+			throw new IllegalStateException("BACKFILL_Scheduler has no resource count configured");
 		else if(res_max < 0)
-			throw new IllegalStateException("FCFS_Scheduler has a negative resource count configured");
+			throw new IllegalStateException("BACKFILL_Scheduler has a negative resource count configured");
 	}
 
 	@Override
@@ -38,7 +44,7 @@ public class EASY_Scheduler implements Scheduler {
 		setMaxResources(properties.getLong("resources", Long.MAX_VALUE));
 	}
 	
-	public EASY_Scheduler setMaxResources(long res_max) {
+	public BACKFILL_Scheduler setMaxResources(long res_max) {
 		this.res_max = res_max;
 		return this;
 	}
@@ -51,20 +57,14 @@ public class EASY_Scheduler implements Scheduler {
 		
 		
 		if(!queue.isEmpty()) {
-			if (isJobFits(queue.peek())) {
+			if(isJobFits(queue.peek())) {
 				addToSchedule(queue.poll(), t_now);
-				endTimeLimit = Long.MIN_VALUE;
 				return t_now;
-			} else if (endTimeLimit == Long.MIN_VALUE) {
-				long res_left = queue.peek().getResourcesRequested() - (res_max - res_used);
-				for (JobFinishEntry jfe : schedule) {
-					res_left -= jfe.job.getResourcesRequested();
-					if (res_left <= 0) {
-						endTimeLimit = jfe.end;
-					}
-				}
+			} else if(!hasReservation(queue.peek())) {
+				reserve(queue.peek(), getReservationTime(queue.peek()));
 			} else {
-				SimulationInterface.log("backfilling jobs that end before: " + endTimeLimit);
+				long endTimeLimit = 0; //TODO add
+				SimulationInterface.log("backfilling jobs");
 				for (Job job : queue) {
 					if (isJobFits(job) && job.getRunDuration() + t_now < endTimeLimit) {
 						SimulationInterface.log("backfilled job: " + job.getJobId() + " running from "+t_now+" to "+(t_now+job.getRunDuration()));
@@ -96,8 +96,37 @@ public class EASY_Scheduler implements Scheduler {
 		return t_target;
 	}
 	
+	private void removeReservation(Job job) {
+		reservationTime.remove(reservationJob.indexOf(job));
+		reservationJob.remove(job);
+	}
+	
+	private void reserve(Job job, long t_reserve){
+		reservationJob.add(job);
+		reservationTime.add(t_reserve);
+	}
+	
+	private boolean hasReservation(Job job) {
+		return reservationJob.contains(job);
+	}
+
+	private long getReservationTime(Job job) {
+		return reservationTime.get(reservationJob.indexOf(job));
+	}
+	
 	private boolean isJobFits(Job job) {
 		return res_max >= res_used + job.getResourcesRequested();
+	}
+	
+	private long getFitTime(Job job) {
+		long res_left = job.getResourcesRequested() - (res_max - res_used);
+		for (JobFinishEntry jfe : schedule) {
+			res_left -= jfe.job.getResourcesRequested();
+			if (res_left <= 0) {
+				return jfe.end;
+			}
+		}
+		return Long.MAX_VALUE;
 	}
 	
 	private void addToSchedule(Job job, long t_now) {
