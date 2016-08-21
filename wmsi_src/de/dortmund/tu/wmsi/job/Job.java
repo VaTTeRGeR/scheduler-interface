@@ -22,6 +22,8 @@ public class Job {
 	public static final int PARTITION_NUMBER = 15;
 	public static final int PRECEDING_JOB_NUMBER = 16;
 	public static final int THINK_TIME_PRECEDING_JOB = 17;
+
+	public static final long NOT_SET = -1;
 	
 	public Job(){
 		this(JobIDCounter.nextID());

@@ -54,7 +54,7 @@ public class Session {
 	 * @param t_startBatch
 	 */
 	private void addBatchToSession(long t_startBatch) {
-		System.out.println("NEW BATCH ADDED AT " + UserModelTimeHelper.time(t_startBatch) + " USER: " + user.getUserId());
+		//System.out.println("NEW BATCH ADDED AT " + UserModelTimeHelper.time(t_startBatch) + " USER: " + user.getUserId());
 		
 		List<Job> batch = batchcreator.createBatch(t_startBatch);
 		
@@ -101,7 +101,7 @@ public class Session {
 					this.terminated = true;
 				}
 				else { 								//continue session
-					System.out.println("Continue Session. USER: " + user.getUserId());
+					//System.out.println("Continue Session. USER: " + user.getUserId());
 					
 					addBatchToSession(starttimeNextBatch);
 				}

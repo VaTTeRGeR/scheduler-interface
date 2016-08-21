@@ -33,7 +33,7 @@ public class JobCreator {
 		initializeMuhat(user.getRuntimeMuhatString());
 		initializeSigmahat(user.getRuntimeSigmahatString());
 		
-		System.out.println("Job Creator started for User: " + user.getUserId());
+		//System.out.println("Job Creator started for User: " + user.getUserId());
 	}
 
 	

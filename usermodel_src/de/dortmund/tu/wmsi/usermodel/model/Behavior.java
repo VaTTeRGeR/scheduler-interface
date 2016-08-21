@@ -56,7 +56,7 @@ public class Behavior {
 		for (int i = 0; i < splitDayDistString.size(); i++) {
 			dayDistribution[i] = Double.parseDouble(splitDayDistString.get(i));
 		}
-		System.out.println("day distribution: " + Arrays.toString(dayDistribution));
+		//System.out.println("day distribution: " + Arrays.toString(dayDistribution));
 	}
 	
 	/**
@@ -70,7 +70,7 @@ public class Behavior {
 			
 			double p = Math.random();
 			if (user.getUserId() > 0) {
-				System.out.println("User: " + user.getUserId() + " Sampled value: " + p + " presenceRatio: " + presenceRatio);
+				//System.out.println("User: " + user.getUserId() + " Sampled value: " + p + " presenceRatio: " + presenceRatio);
 			}
 			boolean activeWeek = (p < presenceRatio);
 			
@@ -89,8 +89,8 @@ public class Behavior {
 			}
 			
 		}
-		System.out.println("start of days: " + Arrays.toString(startOfDays));
-		System.out.println("lengths of days: " + Arrays.toString(lengthOfDays));
+		//System.out.println("start of days: " + Arrays.toString(startOfDays));
+		//System.out.println("lengths of days: " + Arrays.toString(lengthOfDays));
 	}
 	
 
@@ -110,7 +110,7 @@ public class Behavior {
 		}
 		
 		if (timeOnDay-startOfDays[dayOfStart] < lengthOfDays[dayOfStart]) {	//Job finished before day ended
-			System.out.println("start session on same day at " + timestamp);
+			//System.out.println("start session on same day at " + timestamp);
 			
 			return timestamp;
 		}
@@ -123,7 +123,7 @@ public class Behavior {
 				return d*SECONDS_PER_DAY + startOfDays[d];
 			}
 			else {
-				System.out.println("end of simulation of user " + user.getUserId());
+				//System.out.println("end of simulation of user " + user.getUserId());
 				return -1;
 			}
 		}

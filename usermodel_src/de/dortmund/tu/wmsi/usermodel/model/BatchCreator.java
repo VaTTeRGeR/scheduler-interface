@@ -59,11 +59,11 @@ public class BatchCreator {
 		j.set(Job.SUBMIT_TIME, t_start);
 		batch.add(j);
 		
-		System.out.println("Add job to batch at time: " + j.getSubmitTime());
+		//System.out.println("Add job to batch at time: " + j.getSubmitTime());
 		int CORES = (int)j.get(Job.RESOURCES_REQUESTED);
 
 		int batchsize = this.sampleBatchSize();
-		System.out.println("User: " + user.getUserId() + " batchsize: " + batchsize);
+		//System.out.println("User: " + user.getUserId() + " batchsize: " + batchsize);
 		
 		for (int i = 1; i < batchsize; i++) {
 			t_start += this.sampleInterArrivalTime();
@@ -74,7 +74,7 @@ public class BatchCreator {
 			j.set(Job.USER_ID, user.getUserId());
 			batch.add(j);
 			
-			System.out.println("Add job to batch at time: " + j.getSubmitTime() + " with "+j.get(Job.RESOURCES_REQUESTED)+" resources");
+			//System.out.println("Add job to batch at time: " + j.getSubmitTime() + " with "+j.get(Job.RESOURCES_REQUESTED)+" resources");
 		}	
 
 		return batch;

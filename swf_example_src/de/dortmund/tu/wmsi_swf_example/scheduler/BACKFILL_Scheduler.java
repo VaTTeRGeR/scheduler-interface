@@ -17,14 +17,9 @@ public class BACKFILL_Scheduler implements Scheduler {
 	private LinkedList<Long> reservationTime = new LinkedList<Long>();
 	private LinkedList<Job> reservationJob = new LinkedList<Job>();
 	private long res_max = -1, res_used = 0;
-	
-	public BACKFILL_Scheduler() {
-		if(true) throw new IllegalAccessError("DO NOT USE THIS CLASS WIP!");
-	}
-	
+
 	@Override
 	public void initialize() {
-		
 		res_used = 0;
 		if(res_max == -1)
 			throw new IllegalStateException("BACKFILL_Scheduler has no resource count configured");
@@ -54,7 +49,6 @@ public class BACKFILL_Scheduler implements Scheduler {
 		SimulationInterface.log(res_used+"/"+res_max+" resources in use");
 		SimulationInterface.log("queue size: "+queue.size());
 		SimulationInterface.log("schedule size: "+schedule.size());
-		
 		
 		if(!queue.isEmpty()) {
 			if(isJobFits(queue.peek())) {
@@ -102,8 +96,10 @@ public class BACKFILL_Scheduler implements Scheduler {
 	}
 	
 	private void reserve(Job job, long t_reserve){
-		reservationJob.add(job);
-		reservationTime.add(t_reserve);
+		if(t_reserve < Long.MAX_VALUE) {
+			reservationJob.add(job);
+			reservationTime.add(t_reserve);
+		}
 	}
 	
 	private boolean hasReservation(Job job) {
@@ -120,6 +116,8 @@ public class BACKFILL_Scheduler implements Scheduler {
 	
 	private long getFitTime(Job job) {
 		long res_left = job.getResourcesRequested() - (res_max - res_used);
+		if(schedule.isEmpty())
+			return SimulationInterface.instance().getCurrentTime();
 		for (JobFinishEntry jfe : schedule) {
 			res_left -= jfe.job.getResourcesRequested();
 			if (res_left <= 0) {
@@ -145,7 +143,10 @@ public class BACKFILL_Scheduler implements Scheduler {
 	
 	@Override
 	public void enqueueJob(Job job) {
+		if(hasReservation(job))
+			throw new IllegalStateException("Job "+job.getJobId()+" already added to the scheduler");
 		queue.add(job);
+		reserve(job, getFitTime(job));
 	}
 
 	private class JobFinishEntry implements Comparable<JobFinishEntry>{
