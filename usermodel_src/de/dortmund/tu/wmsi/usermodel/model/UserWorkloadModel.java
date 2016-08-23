@@ -22,6 +22,8 @@ public class UserWorkloadModel implements WorkloadModel{
 		long t_start = 0L;
 		if(properties.getBoolean("simulation.useCurrentDate", false))
 			t_start = new Date().getTime()/1000L;
+		else
+			t_start = properties.getLong("simulation.startTime", 0);
 			
 		SimulationInterface.instance().setSimulationBeginTime(t_start);
 		SimulationInterface.instance().setSimulationEndTime(t_start + TimeUnit.DAYS.toSeconds(7L*weeks));

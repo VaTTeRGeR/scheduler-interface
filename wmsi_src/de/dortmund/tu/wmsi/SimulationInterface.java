@@ -153,6 +153,10 @@ public class SimulationInterface {
 	}
 
 	public void simulate() {
+		t_now = t_begin;
+		t_next = t_end;
+		times[END] = t_end;
+
 		if(model == null)
 			throw new IllegalStateException("Cannot simulate without a workload model");
 		else
@@ -167,11 +171,6 @@ public class SimulationInterface {
 			log("No logger set");
 		else
 			logger.initialize();
-			
-			
-		t_now = t_begin;
-		t_next = t_end;
-		times[END] = t_end;
 		
 		log("simulation from "+t_begin+" to "+t_end);
 
@@ -289,7 +288,7 @@ public class SimulationInterface {
 		if(times[ROUTINE] < t_now)
 			throw new IllegalStateException("the next routine execution time cannot be before t_now.");
 		if(times[SUBMIT] < t_now)
-			throw new IllegalStateException("the next submit cannot be before t_now.");
+			throw new IllegalStateException("the next submit cannot be before t_now: "+times[SUBMIT]+" < "+t_now);
 		if(t_now > t_next)
 			throw new IllegalStateException("t_now cannot be ahead of t_next.");
 		if(t_begin > t_now)
