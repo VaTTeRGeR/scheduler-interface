@@ -74,12 +74,16 @@ public class BACKFILL_Scheduler implements Scheduler {
 		if(!schedule.isEmpty() && t_target >= schedule.peek().end) {
 			
 			JobFinishEntry entry = schedule.poll();
+			
 			SimulationInterface.instance().submitEvent(new JobFinishedEvent(entry.end, entry.job));
 			
 			res_used -= entry.job.getResourcesRequested();
 			
 			SimulationInterface.log("finished job "+entry.job.getJobId()+" at "+entry.end);
 			SimulationInterface.log("freeing "+entry.job.getResourcesRequested()+" resources");
+			
+			if(hasReservation(entry.job))
+				removeReservation(entry.job);
 			
 			return entry.end;
 		}

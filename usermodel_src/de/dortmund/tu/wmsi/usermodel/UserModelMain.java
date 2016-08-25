@@ -6,21 +6,33 @@ public class UserModelMain {
 
 	public static void main(String[] args) {
 		SimulationInterface si;
-		/*si = SimulationInterface.instance();
+		si = SimulationInterface.instance();
 
 		si.configure("usermodel_config/simulation_fcfs.properties");
 		si.simulate();
 		
-		SimulationInterface.destroy();*/
-		/*si = SimulationInterface.instance();
+		SimulationInterface.destroy();
+		si = SimulationInterface.instance();
 
 		si.configure("usermodel_config/simulation_easy.properties");
 		si.simulate();
 		
-		SimulationInterface.destroy();*/
+		SimulationInterface.destroy();
 		si = SimulationInterface.instance();
 
 		si.configure("usermodel_config/simulation_gini.properties");
+		si.simulate();
+		
+		SimulationInterface.destroy();
+		si = SimulationInterface.instance();
+
+		si.configure("usermodel_config/simulation_gini_pure.properties");
+		si.simulate();
+		
+		SimulationInterface.destroy();
+		si = SimulationInterface.instance();
+
+		si.configure("usermodel_config/simulation_gini_easy.properties");
 		si.simulate();
 		
 		SimulationInterface.destroy();

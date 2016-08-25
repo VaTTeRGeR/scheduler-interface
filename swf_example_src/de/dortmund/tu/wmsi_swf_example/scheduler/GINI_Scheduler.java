@@ -36,7 +36,6 @@ public class GINI_Scheduler implements Scheduler {
 			throw new IllegalStateException("FCFS_Scheduler has a negative max wait time configured");
 		
 		queue = new LinkedList<Job>();
-		new LinkedList<Job>();
 		schedule = new LinkedList<JobFinishEntry>();
 		waitTime = new HashMap<Long, Long>();
 		jobCount = new HashMap<Long, Long>();
@@ -129,10 +128,6 @@ public class GINI_Scheduler implements Scheduler {
 		return (t_now = t_target);
 	}
 	
-	private double getAWWTOfUser(long userId) {
-		return avgWeightedWaitTime.getOrDefault(userId, 0d);
-	}
-	
 	@Override
 	public void enqueueJob(Job job) {
 		if(job.get(Job.USER_ID) == Job.NOT_SET)
@@ -141,18 +136,6 @@ public class GINI_Scheduler implements Scheduler {
 		awwtDirty = true;
 	}
 
-	private JobWaitTimeComparator jwtc = new JobWaitTimeComparator();
-	
-	private class JobWaitTimeComparator implements Comparator<Job> {
-		@Override
-		public int compare(Job j0, Job j1) {
-			if(j0.get(Job.WAIT_TIME) > wait_max || j1.get(Job.WAIT_TIME) > wait_max)
-				return (int)(j0.get(Job.WAIT_TIME)-j1.get(Job.WAIT_TIME));
-			else
-				return (int)(getAWWTOfUser(j0.get(Job.USER_ID))-getAWWTOfUser(j1.get(Job.USER_ID)));
-		}
-	}
-	
 	private JobWaitTimeComparatorGini jwtcGini = new JobWaitTimeComparatorGini();
 	
 	private class JobWaitTimeComparatorGini implements Comparator<Job> {
@@ -186,7 +169,7 @@ public class GINI_Scheduler implements Scheduler {
 		@Override
 		public int compare(Job j0, Job j1) {
 			if(j0.get(Job.WAIT_TIME) > wait_max || j1.get(Job.WAIT_TIME) > wait_max)
-				return (int)(j0.get(Job.WAIT_TIME)-j1.get(Job.WAIT_TIME));
+				return (int)(j1.get(Job.WAIT_TIME)-j0.get(Job.WAIT_TIME));
 			else
 				return (int)(jobToGini.get(j0)-jobToGini.get(j1));
 		}
