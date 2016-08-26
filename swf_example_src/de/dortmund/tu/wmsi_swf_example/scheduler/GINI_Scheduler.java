@@ -71,12 +71,17 @@ public class GINI_Scheduler implements Scheduler {
 		SimulationInterface.log("queue size: "+queue.size());
 		SimulationInterface.log("schedule size: "+schedule.size());
 		
+		for(Job job : queue) {
+			job.set(Job.WAIT_TIME, t_now-job.get(Job.SUBMIT_TIME));
+		}
+		
 		for (Long user : waitTime.keySet()) {
 			avgWeightedWaitTime.put(user, ((double)waitTime.get(user))/(double)jobCount.get(user));
 		}
-		
+
 		if(awwtDirty) {
 			jwtcGini.prepareCompare();
+			awwtDirty = false;
 		}
 		Collections.sort(queue, jwtcGini);
 		
@@ -85,9 +90,6 @@ public class GINI_Scheduler implements Scheduler {
 		if(!queue.isEmpty() && res_max >= res_used + queue.peek().getResourcesRequested()) {
 			Job job = queue.poll();
 			long userId = job.get(Job.USER_ID);
-			
-			
-			job.set(Job.WAIT_TIME, t_now-job.get(Job.SUBMIT_TIME));
 			
 			waitTime.put(userId, waitTime.getOrDefault(userId,0L)+job.get(Job.WAIT_TIME));
 			jobCount.put(userId, jobCount.getOrDefault(userId,0L)+1L);
@@ -163,7 +165,6 @@ public class GINI_Scheduler implements Scheduler {
 				jobToGini.put(job, (long)(GiniUtil.getGiniCoefficient(awwtValues)*100000d));
 				//System.out.println("Gini if Job "+job.getJobId()+ " taken: "+(long)(GiniUtil.getGiniCoefficient(awwtValues)*100000d) + " / "+GiniUtil.getGiniCoefficient(awwtValues));
 			}
-			awwtDirty = false;
 		}
 		
 		@Override
