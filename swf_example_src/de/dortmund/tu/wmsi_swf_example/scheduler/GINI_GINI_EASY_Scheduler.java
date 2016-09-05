@@ -13,7 +13,7 @@ import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.GiniUtil;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
-public class GINI_EASY_Scheduler implements Scheduler {
+public class GINI_GINI_EASY_Scheduler implements Scheduler {
 
 	private LinkedList<Job> queue;
 	private LinkedList<JobFinishEntry> schedule;
@@ -62,12 +62,12 @@ public class GINI_EASY_Scheduler implements Scheduler {
 		setMaxWaitTime(properties.getLong("wait_threshold", -1));
 	}
 	
-	public GINI_EASY_Scheduler setMaxResources(long res_max) {
+	public GINI_GINI_EASY_Scheduler setMaxResources(long res_max) {
 		this.res_max = res_max;
 		return this;
 	}
 	
-	public GINI_EASY_Scheduler setMaxWaitTime(long wait_max) {
+	public GINI_GINI_EASY_Scheduler setMaxWaitTime(long wait_max) {
 		this.wait_max = wait_max;
 		return this;
 	}
@@ -94,6 +94,7 @@ public class GINI_EASY_Scheduler implements Scheduler {
 
 		if(!queue.isEmpty()) {
 			if(reservation_job == null) {
+				SimulationInterface.log("adding new reservation");
 				long res_left = queue.peek().getResourcesRequested() - (res_max - res_used);
 				for (JobFinishEntry jfe : schedule) {
 					res_left -= jfe.job.getResourcesRequested();
@@ -104,6 +105,7 @@ public class GINI_EASY_Scheduler implements Scheduler {
 				reservation_job = queue.poll();
 				return t_now;
 			} else if (isJobFits(reservation_job)) {
+				SimulationInterface.log("executing reserved job");
 				addToSchedule(reservation_job, t_now);
 				removeReservation();
 				return t_now;
@@ -111,10 +113,10 @@ public class GINI_EASY_Scheduler implements Scheduler {
 				SimulationInterface.log("backfilling jobs that end before: " + reservation_begin);
 				for (Job job : queue) {
 					if (isJobFits(job) && job.getRunDuration() + t_now < reservation_begin) {
-						SimulationInterface.log("backfilled job: " + job.getJobId() + " running from " + t_now + " to "
-								+ (t_now + job.getRunDuration()));
+						SimulationInterface.log("backfilled job: " + job.getJobId() + " running from " + t_now + " to " + (t_now + job.getRunDuration()));
 						queue.remove(job);
 						addToSchedule(job, t_now);
+						awwtDirty = true;
 						return t_now;
 					}
 				}
@@ -185,9 +187,9 @@ public class GINI_EASY_Scheduler implements Scheduler {
 		private LinkedList<Double> awwt = new LinkedList<Double>();
 
 		private void prepareCompare() {
-			jobToGini.clear();
+			this.jobToGini.clear();
 			for (Job job : queue) {
-				awwt.clear();
+				this.awwt.clear();
 				for (Long userId : waitTime.keySet()) {
 					if(userId == job.get(Job.USER_ID)) {
 						long wt = waitTime.get(userId) + job.get(Job.WAIT_TIME);

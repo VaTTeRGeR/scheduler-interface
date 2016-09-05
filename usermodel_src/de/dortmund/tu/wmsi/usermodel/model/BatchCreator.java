@@ -75,20 +75,22 @@ public class BatchCreator {
 			j.set(Job.RESOURCES_REQUESTED, CORES);
 			j.set(Job.USER_ID, user.getUserId());
 			
-			double gaussRandom = random.nextGaussian()/4d+0.75d;
-			gaussRandom = Math.min(gaussRandom, 1);
-			gaussRandom = Math.max(gaussRandom, 0);
+			double t_run = (double)j.get(Job.TIME_REQUESTED);
+			double	n = 1,
+					m = 1;
 			
-			long t_run = j.get(Job.TIME_REQUESTED);
+			double gaussRandom = t_run + random.nextGaussian() * t_run * (n / 100d);
+			gaussRandom = Math.ceil(gaussRandom);
+			gaussRandom = Math.ceil((Math.log(gaussRandom)/Math.log(m)));
+			gaussRandom = Math.pow(gaussRandom, m);
 			
-			j.set(Job.RUN_TIME, (long)(t_run * gaussRandom));
+			j.set(Job.RUN_TIME, (long)gaussRandom);
 			
-			if(j.get(Job.RUN_TIME) >= 1)
+			if(j.get(Job.RUN_TIME) >= 1 && j.get(Job.RUN_TIME) <= j.get(Job.TIME_REQUESTED))
 				batch.add(j);
 			
 			//System.out.println("Add job to batch at time: " + j.getSubmitTime() + " with "+j.get(Job.RESOURCES_REQUESTED)+" resources");
 		}	
-
 		return batch;
 	}
 

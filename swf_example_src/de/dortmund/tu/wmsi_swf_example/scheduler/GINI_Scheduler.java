@@ -52,7 +52,7 @@ public class GINI_Scheduler implements Scheduler {
 		PropertiesHandler properties = new PropertiesHandler(configPath);
 		
 		setMaxResources(properties.getLong("resources", Long.MAX_VALUE));
-		setMaxWaitTime(properties.getLong("wait_threshold", Long.MAX_VALUE));
+		setMaxWaitTime(properties.getLong("wait_threshold", -1));
 	}
 	
 	public GINI_Scheduler setMaxResources(long res_max) {
@@ -169,7 +169,7 @@ public class GINI_Scheduler implements Scheduler {
 		
 		@Override
 		public int compare(Job j0, Job j1) {
-			if(j0.get(Job.WAIT_TIME) > wait_max || j1.get(Job.WAIT_TIME) > wait_max)
+			if(wait_max > 0 && (j0.get(Job.WAIT_TIME) > wait_max || j1.get(Job.WAIT_TIME) > wait_max))
 				return (int)(j1.get(Job.WAIT_TIME)-j0.get(Job.WAIT_TIME));
 			else
 				return (int)(jobToGini.get(j0)-jobToGini.get(j1));
