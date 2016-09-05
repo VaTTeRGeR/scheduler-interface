@@ -89,9 +89,9 @@ public class FCFS_Scheduler implements Scheduler {
 	public void enqueueJob(Job job) {
 		queue.add(job);
 		if(job.get(Job.RESOURCES_REQUESTED) < 1)
-			throw new IllegalStateException("Job cannot use less than one resource");
+			throw new IllegalStateException("Job cannot use less than one resource ("+job.get(Job.RESOURCES_REQUESTED)+")");
 		if(job.get(Job.RUN_TIME) < 1)
-			throw new IllegalStateException("Job cannot run less than one second");
+			throw new IllegalStateException("Job cannot run less than one second ("+job.get(Job.RUN_TIME)+")");
 	}
 
 	private class JobFinishEntry implements Comparable<JobFinishEntry>{

@@ -169,7 +169,7 @@ public class GINI_EASY_Scheduler implements Scheduler {
 		SimulationInterface.log("moved job "+job.getJobId()+" from queue to schedule");
 		SimulationInterface.log("binding "+job.getResourcesRequested()+" resources");
 	}
-	
+
 	@Override
 	public void enqueueJob(Job job) {
 		if(job.get(Job.USER_ID) == Job.NOT_SET)

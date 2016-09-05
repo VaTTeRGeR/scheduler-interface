@@ -2,6 +2,7 @@ package de.dortmund.tu.wmsi.usermodel.model;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.commons.math3.distribution.LogisticDistribution;
 
@@ -22,6 +23,7 @@ public class BatchCreator {
 	double interarrivalTimeMu;
 	double interarrivalTimeSigma;
 
+	Random random = new Random();
 
 	public BatchCreator(User u) {
 		this.user = u;
@@ -72,7 +74,17 @@ public class BatchCreator {
 			j.set(Job.SUBMIT_TIME, t_start);
 			j.set(Job.RESOURCES_REQUESTED, CORES);
 			j.set(Job.USER_ID, user.getUserId());
-			batch.add(j);
+			
+			double gaussRandom = random.nextGaussian()/4d+0.75d;
+			gaussRandom = Math.min(gaussRandom, 1);
+			gaussRandom = Math.max(gaussRandom, 0);
+			
+			long t_run = j.get(Job.TIME_REQUESTED);
+			
+			j.set(Job.RUN_TIME, (long)(t_run * gaussRandom));
+			
+			if(j.get(Job.RUN_TIME) >= 1)
+				batch.add(j);
 			
 			//System.out.println("Add job to batch at time: " + j.getSubmitTime() + " with "+j.get(Job.RESOURCES_REQUESTED)+" resources");
 		}	
