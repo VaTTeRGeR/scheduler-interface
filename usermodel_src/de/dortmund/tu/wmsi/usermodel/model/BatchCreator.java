@@ -2,12 +2,12 @@ package de.dortmund.tu.wmsi.usermodel.model;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 import org.apache.commons.math3.distribution.LogisticDistribution;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.job.Job;
+import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 
 public class BatchCreator {
 
@@ -22,8 +22,6 @@ public class BatchCreator {
 	
 	double interarrivalTimeMu;
 	double interarrivalTimeSigma;
-
-	Random random = new Random();
 
 	public BatchCreator(User u) {
 		this.user = u;
@@ -76,13 +74,13 @@ public class BatchCreator {
 			j.set(Job.USER_ID, user.getUserId());
 			
 			double t_run = (double)j.get(Job.TIME_REQUESTED);
-			double	n = 1,
-					m = 1;
 			
-			double gaussRandom = t_run + random.nextGaussian() * t_run * (n / 100d);
-			gaussRandom = Math.ceil(gaussRandom);
-			gaussRandom = Math.ceil((Math.log(gaussRandom)/Math.log(m)));
-			gaussRandom = Math.pow(gaussRandom, m);
+			double standardDeviation = t_run/4; // 95% of values hit the [0,t_run] interval
+			double mean = t_run/2; // mean is middle of the runtime
+			
+			double gaussRandom = StatisticalMathHelper.normalDistributedSD(mean, standardDeviation);
+			gaussRandom = Math.min(gaussRandom, t_run);//limit execution time, job abortion isn't modelled yet
+			gaussRandom = Math.max(gaussRandom, 1);//limit execution time, job abortion isn't modelled yet
 			
 			j.set(Job.RUN_TIME, (long)gaussRandom);
 			

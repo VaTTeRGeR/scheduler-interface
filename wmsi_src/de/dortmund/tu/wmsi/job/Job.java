@@ -40,14 +40,18 @@ public class Job {
 		this();
 		set(SUBMIT_TIME, tsub);
 		set(RUN_TIME, trun);
+		set(TIME_REQUESTED, trun);
 		set(RESOURCES_REQUESTED, res);
+		set(RESOURCES_ALLOCATED, res);
 	}
 	
 	public Job(long id, long tsub, long trun, long res){
 		this(id);
 		set(SUBMIT_TIME, tsub);
 		set(RUN_TIME, trun);
+		set(TIME_REQUESTED, trun);
 		set(RESOURCES_REQUESTED, res);
+		set(RESOURCES_ALLOCATED, res);
 	}
 	
 	public long getJobId() {
@@ -59,7 +63,7 @@ public class Job {
 	}
 
 	public long getRunDuration() {
-		return get(RUN_TIME);
+		return Math.max(get(RUN_TIME), get(TIME_REQUESTED));
 	}
 
 	public long getResourcesRequested() {

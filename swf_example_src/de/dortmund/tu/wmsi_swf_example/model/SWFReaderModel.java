@@ -37,7 +37,7 @@ public class SWFReaderModel implements WorkloadModel {
 		
 		for (int i = 0; i < lines.length; i++) {
 			String[] values = lines[i].split("\\s+");
-			if(Long.parseLong(values[Job.SUBMIT_TIME]) >= 0 && Long.parseLong(values[Job.RUN_TIME]) >= 0 && Long.parseLong(values[Job.RESOURCES_ALLOCATED]) >= 0) {
+			if(Long.parseLong(values[Job.SUBMIT_TIME]) >= 0 && Long.parseLong(values[Job.RUN_TIME]) > 0 && Long.parseLong(values[Job.RESOURCES_ALLOCATED]) > 0) {
 				simface.submitJob(new Job(Long.valueOf((values[Job.JOB_ID])), Long.parseLong(values[Job.SUBMIT_TIME]), Long.parseLong(values[Job.RUN_TIME]), Long.parseLong(values[Job.RESOURCES_ALLOCATED])));
 			}
 		}

@@ -34,12 +34,6 @@ public class UserModelMain {
 
 		si.configure("usermodel_config/simulation_gini_easy.properties");
 		si.simulate();
-
-		SimulationInterface.destroy();
-		si = SimulationInterface.instance();
-		
-		si.configure("usermodel_config/simulation_gini_gini_easy.properties");
-		si.simulate();
 		
 		SimulationInterface.destroy();
 	}

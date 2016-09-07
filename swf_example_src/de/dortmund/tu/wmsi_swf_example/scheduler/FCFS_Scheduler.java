@@ -1,28 +1,29 @@
 package de.dortmund.tu.wmsi_swf_example.scheduler;
 
-import java.util.Collections;
 import java.util.LinkedList;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
 import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
+import de.dortmund.tu.wmsi.scheduler.Schedule;
+import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
 public class FCFS_Scheduler implements Scheduler {
 
 	private LinkedList<Job> queue = new LinkedList<Job>();
-	private LinkedList<JobFinishEntry> schedule = new LinkedList<JobFinishEntry>();
-	private long res_max = -1, res_used = 0;
+	private Schedule schedule;
+	private long res_max = -1;
 	
 	@Override
 	public void initialize() {
-		res_used = 0;
 		if(res_max == -1)
 			throw new IllegalStateException("FCFS_Scheduler has no resource count configured");
 		else if(res_max < 0)
 			throw new IllegalStateException("FCFS_Scheduler has a negative resource count configured");
+		schedule = new Schedule(res_max);
 	}
 
 	@Override
@@ -39,26 +40,24 @@ public class FCFS_Scheduler implements Scheduler {
 	
 	public FCFS_Scheduler setMaxResources(long res_max) {
 		this.res_max = res_max;
+		schedule = new Schedule(res_max);
 		return this;
 	}
 	
 	@Override
 	public long simulateUntil(long t_now, long t_target) {
-		SimulationInterface.log(res_used+"/"+res_max+" resources in use");
+		SimulationInterface.log(schedule.getResourcesUsed()+"/"+res_max+" resources in use");
 		SimulationInterface.log("queue size: "+queue.size());
-		SimulationInterface.log("schedule size: "+schedule.size());
+		SimulationInterface.log("schedule size: "+schedule.getScheduleSize());
 		
 		//try to process a job from the queue
-		if(!queue.isEmpty() && res_max >= res_used + queue.peek().getResourcesRequested()) {
+		if(!queue.isEmpty() && schedule.isFitToSchedule(queue.peek())){
 			Job job = queue.poll();
 			
-			schedule.add(new JobFinishEntry(t_now + job.getRunDuration(), job));
-			Collections.sort(schedule);
+			schedule.addToSchedule(job, t_now);
 
 			SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
 			
-			res_used += job.getResourcesRequested();
-
 			SimulationInterface.log("moved job "+job.getJobId()+" from queue to schedule");
 			SimulationInterface.log("binding "+job.getResourcesRequested()+" resources");
 			
@@ -66,17 +65,16 @@ public class FCFS_Scheduler implements Scheduler {
 		}
 		
 		// a job is going to be finished before t_target is reached
-		if(!schedule.isEmpty() && t_target >= schedule.peek().end) {
+		if(!schedule.isEmpty() && schedule.peekNextFinishedJobEntry(t_target) != null) {
 			
-			JobFinishEntry entry = schedule.poll();
-			SimulationInterface.instance().submitEvent(new JobFinishedEvent(entry.end, entry.job));
+			JobFinishEntry jfe = schedule.pollNextFinishedJobEntry(t_target);
 			
-			res_used -= entry.job.getResourcesRequested();
+			SimulationInterface.instance().submitEvent(new JobFinishedEvent(jfe.t_end, jfe.job));
 			
-			SimulationInterface.log("finished job "+entry.job.getJobId()+" at "+entry.end);
-			SimulationInterface.log("freeing "+entry.job.getResourcesRequested()+" resources");
+			SimulationInterface.log("finished job "+jfe.job.getJobId()+" at "+jfe.t_end);
+			SimulationInterface.log("freeing "+jfe.job.getResourcesRequested()+" resources");
 			
-			return (t_now = entry.end);
+			return (t_now = jfe.t_end);
 		}
 		
 		SimulationInterface.log("scheduler idled");
@@ -92,20 +90,5 @@ public class FCFS_Scheduler implements Scheduler {
 			throw new IllegalStateException("Job cannot use less than one resource ("+job.get(Job.RESOURCES_REQUESTED)+")");
 		if(job.get(Job.RUN_TIME) < 1)
 			throw new IllegalStateException("Job cannot run less than one second ("+job.get(Job.RUN_TIME)+")");
-	}
-
-	private class JobFinishEntry implements Comparable<JobFinishEntry>{
-		private long end;
-		private Job job;
-
-		public JobFinishEntry(long end, Job job) {
-			this.end = end;
-			this.job = job;
-		}
-		
-		@Override
-		public int compareTo(JobFinishEntry other) {
-			return (int)(end-other.end);
-		}
 	}
 }
