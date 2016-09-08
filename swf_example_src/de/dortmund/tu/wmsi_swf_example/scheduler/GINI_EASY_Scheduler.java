@@ -119,7 +119,7 @@ public class GINI_EASY_Scheduler implements Scheduler {
 						long userId = job.get(Job.USER_ID);
 						
 						waitTime.put(userId, Math.max(0, waitTime.getOrDefault(userId,0L) + job.get(Job.WAIT_TIME)
-								/*-StatisticalMathHelper.userAccepteableWaitTime075(job.get(Job.TIME_REQUESTED))*/));
+								-StatisticalMathHelper.userAccepteableWaitTime075(job.get(Job.TIME_REQUESTED))));
 						
 						jobCount.put(userId, jobCount.getOrDefault(userId,0L)+1L);
 						awwtDirty = true;

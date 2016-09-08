@@ -98,7 +98,7 @@ public class BatchCreator {
 		//System.out.println(t_run+" -> N["+mean+","+standardDeviation+"] = "+(long)gaussRandom);
 		
 		//job.set(Job.RUN_TIME, (long)gaussRandom);
-		job.set(Job.RUN_TIME, (long)t_run);
+		job.set(Job.RUN_TIME, (long)(t_run/2d));
 	}
 
 	/**
