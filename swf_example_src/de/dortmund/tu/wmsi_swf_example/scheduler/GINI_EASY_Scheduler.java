@@ -1,7 +1,6 @@
 package de.dortmund.tu.wmsi_swf_example.scheduler;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -12,24 +11,24 @@ import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.scheduler.Schedule;
 import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
-import de.dortmund.tu.wmsi.util.GiniUtil;
+import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
 public class GINI_EASY_Scheduler implements Scheduler {
 
 	private LinkedList<Job> queue;
 	private Schedule schedule;
-	private long res_max = -1;
 	
 	private HashMap<Long, Long> waitTime;
 	private HashMap<Long, Long> jobCount;
-	private HashMap<Long, Double> avgWeightedWaitTime;
-	private long wait_max = -1;
+	private HashMap<Long, Double> avgwwt;
+	private boolean awwtDirty = false;
 
 	private long reservation_begin = Long.MIN_VALUE;
 	private Job reservation_job = null;
 	
-	private boolean awwtDirty = false;
+	private long res_max = -1;
+	private long wait_max = -1;
 	
 	@Override
 	public void initialize() {
@@ -47,7 +46,8 @@ public class GINI_EASY_Scheduler implements Scheduler {
 		schedule = new Schedule(res_max);
 		waitTime = new HashMap<Long, Long>();
 		jobCount = new HashMap<Long, Long>();
-		avgWeightedWaitTime = new HashMap<Long, Double>();
+		avgwwt = new HashMap<Long, Double>();
+		jwtcGini = new JobWaitTimeComparatorGini(waitTime, jobCount, avgwwt, wait_max);
 	}
 
 	@Override
@@ -85,11 +85,11 @@ public class GINI_EASY_Scheduler implements Scheduler {
 		}
 		
 		for (Long user : waitTime.keySet()) {
-			avgWeightedWaitTime.put(user, ((double)waitTime.get(user))/(double)jobCount.get(user));
+			avgwwt.put(user, ((double)waitTime.get(user))/(double)jobCount.get(user));
 		}
 		
 		if(awwtDirty) {
-			jwtcGini.prepareCompare();
+			jwtcGini.prepareCompare(queue);
 			awwtDirty = false;
 		}
 		Collections.sort(queue, jwtcGini);
@@ -101,6 +101,7 @@ public class GINI_EASY_Scheduler implements Scheduler {
 				return t_now;
 			} else if (schedule.isFitToSchedule(reservation_job)) {
 				schedule.addToSchedule(reservation_job, t_now);
+				SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, reservation_job));
 				long userId = reservation_job.get(Job.USER_ID);
 				waitTime.put(userId, waitTime.getOrDefault(userId,0L)+reservation_job.get(Job.WAIT_TIME));
 				jobCount.put(userId, jobCount.getOrDefault(userId,0L)+1L);
@@ -113,9 +114,16 @@ public class GINI_EASY_Scheduler implements Scheduler {
 					if (schedule.isFitToSchedule(job) && job.getRunDuration() + t_now < reservation_begin) {
 						SimulationInterface.log("backfilled job: " + job.getJobId() + " running from " + t_now + " to " + (t_now + job.getRunDuration()));
 						queue.remove(job);
+						SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
 						schedule.addToSchedule(job, t_now);
 						long userId = job.get(Job.USER_ID);
-						waitTime.put(userId, waitTime.getOrDefault(userId,0L)+job.get(Job.WAIT_TIME));
+						
+						waitTime.put(userId, Math.max(0L,
+								waitTime.getOrDefault(userId,0L)
+								+job.get(Job.WAIT_TIME)
+								-StatisticalMathHelper.userAccepteableWaitTime075(job.get(Job.TIME_REQUESTED)))
+								);
+						
 						jobCount.put(userId, jobCount.getOrDefault(userId,0L)+1L);
 						awwtDirty = true;
 						return t_now;
@@ -155,41 +163,5 @@ public class GINI_EASY_Scheduler implements Scheduler {
 		awwtDirty = true;
 	}
 
-	private JobWaitTimeComparatorGini jwtcGini = new JobWaitTimeComparatorGini();
-	
-	private class JobWaitTimeComparatorGini implements Comparator<Job> {
-		private HashMap<Job, Long> jobToGini = new HashMap<Job, Long>();
-		private LinkedList<Double> awwt = new LinkedList<Double>();
-
-		private void prepareCompare() {
-			jobToGini.clear();
-			for (Job job : queue) {
-				awwt.clear();
-				for (Long userId : waitTime.keySet()) {
-					if(userId == job.get(Job.USER_ID)) {
-						long wt = waitTime.get(userId) + job.get(Job.WAIT_TIME);
-						long jc = jobCount.get(userId) + 1;
-						awwt.add(((double)wt)/(double)jc);
-					} else {
-						awwt.add(avgWeightedWaitTime.get(userId));
-					}
-				}
-				int i = 0;
-				double[] awwtValues = new double[awwt.size()];
-				for (Double value : awwt) {
-					awwtValues[i++] = value;
-				}
-				jobToGini.put(job, (long)(GiniUtil.getGiniCoefficient(awwtValues)*100000d));
-				//System.out.println("Gini if Job "+job.getJobId()+ " taken: "+(long)(GiniUtil.getGiniCoefficient(awwtValues)*100000d) + " / "+GiniUtil.getGiniCoefficient(awwtValues));
-			}
-		}
-		
-		@Override
-		public int compare(Job j0, Job j1) {
-			if(wait_max > 0 && (j0.get(Job.WAIT_TIME) > wait_max || j1.get(Job.WAIT_TIME) > wait_max))
-				return (int)(j1.get(Job.WAIT_TIME)-j0.get(Job.WAIT_TIME));
-			else
-				return (int)(jobToGini.get(j0)-jobToGini.get(j1));
-		}
-	}
+	private JobWaitTimeComparatorGini jwtcGini;
 }

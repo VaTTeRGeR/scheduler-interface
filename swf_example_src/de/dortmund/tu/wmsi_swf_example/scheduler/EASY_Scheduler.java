@@ -1,11 +1,9 @@
 package de.dortmund.tu.wmsi_swf_example.scheduler;
 
-import java.util.Collections;
 import java.util.LinkedList;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
-import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.scheduler.Schedule;
 import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;

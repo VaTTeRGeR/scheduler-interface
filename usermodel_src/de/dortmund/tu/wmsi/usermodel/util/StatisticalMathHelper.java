@@ -13,14 +13,15 @@ public class StatisticalMathHelper {
 		return mean + random.nextGaussian() * Math.sqrt(variance);
 	}
 	
-	public static double userAccepteableWaitTime(double pj, double c1, double c2){
+	public static double linearRegression(double pj, double c1, double c2){
 		final double temp = (c1*pj + c2) - pj;
 		return Math.max(temp/pj, 1d);
 	}
 
-	public static double userAccepteableWaitTime075(double pj){
+	public static long userAccepteableWaitTime075(long run_time){
 		final double c1 = 2.28;
-		final double c2 = 215.75; // 215.75 minutes
-		return (userAccepteableWaitTime(pj, c1, c2)-1.0)*pj;
+		final double c2 = 215.75*60.0; // 215.75 minutes in seconds
+		final double pj = (double)run_time;
+		return (long)((linearRegression(pj, c1, c2)-1.0)*pj);
 	}
 }

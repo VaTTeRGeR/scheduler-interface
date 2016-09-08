@@ -4,14 +4,14 @@ import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 
 public class UACCWTTest {
 	public static void main(String[] args) {
-		double pj;
-		pj = 0.5; // 30min
-		System.out.println("UACCWT: " + StatisticalMathHelper.userAccepteableWaitTime075(pj*60d)/60d);
-		pj = 1; // 1h
-		System.out.println("UACCWT: " + StatisticalMathHelper.userAccepteableWaitTime075(pj*60d)/60d);
-		pj = 10; // 10h
-		System.out.println("UACCWT: " + StatisticalMathHelper.userAccepteableWaitTime075(pj*60d)/60d);
-		pj = 100; // 100h
-		System.out.println("UACCWT: " + StatisticalMathHelper.userAccepteableWaitTime075(pj*60d)/60d);
+		long pj;
+		pj = 3600/2; // 30min
+		System.out.println("UACCWT: " + StatisticalMathHelper.userAccepteableWaitTime075(pj)/3600d);
+		pj = 1*3600; // 1h
+		System.out.println("UACCWT: " + StatisticalMathHelper.userAccepteableWaitTime075(pj)/3600d);
+		pj = 10*3600; // 10h
+		System.out.println("UACCWT: " + StatisticalMathHelper.userAccepteableWaitTime075(pj)/3600d);
+		pj = 100*3600; // 100h
+		System.out.println("UACCWT: " + StatisticalMathHelper.userAccepteableWaitTime075(pj)/3600d);
 	}
 }
