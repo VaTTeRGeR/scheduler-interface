@@ -4,6 +4,7 @@ import java.util.LinkedList;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
+import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.scheduler.Schedule;
 import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
@@ -41,7 +42,6 @@ public class EASY_Scheduler implements Scheduler {
 	
 	public EASY_Scheduler setMaxResources(long res_max) {
 		this.res_max = res_max;
-		schedule = new Schedule(res_max);
 		return this;
 	}
 	
@@ -51,9 +51,13 @@ public class EASY_Scheduler implements Scheduler {
 		SimulationInterface.log("queue size: "+queue.size());
 		SimulationInterface.log("schedule size: "+schedule.getScheduleSize());
 		
+		for (Job job : queue) {
+			job.set(Job.WAIT_TIME, t_now - job.get(Job.SUBMIT_TIME));
+		}
 		
 		if(!queue.isEmpty()) {
 			if (schedule.isFitToSchedule(queue.peek())) {
+				SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, queue.peek()));
 				schedule.addToSchedule(queue.poll(), t_now);
 				reservation_begin = Long.MIN_VALUE;
 				return t_now;
@@ -66,6 +70,7 @@ public class EASY_Scheduler implements Scheduler {
 						SimulationInterface.log("backfilled job: " + job.getJobId() + " running from "+t_now+" to "+(t_now+job.getRunDuration()));
 						queue.remove(job);
 						schedule.addToSchedule(job, t_now);
+						SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
 						return t_now;
 					}
 				}

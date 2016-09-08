@@ -94,7 +94,7 @@ public class Schedule {
 	}
 
 	public boolean isEmpty() {
-		return scheduleReal.isEmpty();
+		return scheduleReal.isEmpty() && scheduleUser.isEmpty();
 	}
 
 	public class JobFinishEntry implements Comparable<JobFinishEntry>{

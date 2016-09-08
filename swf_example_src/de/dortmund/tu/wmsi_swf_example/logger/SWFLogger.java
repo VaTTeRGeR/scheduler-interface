@@ -73,16 +73,10 @@ public class SWFLogger implements Logger {
 	@Override
 	public void jobFinished(JobFinishedEvent event) {
 		Job job = event.getJob();
-		
-		long t_finish = event.getTime();
-		long t_wait = (t_finish - job.getRunDuration()) - job.getSubmitTime();
-
-		Job swfJob = job;
-		swfJob.set(Job.WAIT_TIME, t_wait);
 			
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < 18; i++) {
-			builder.append(String.format("%12d", swfJob.get(i)));
+			builder.append(String.format("%12d", job.get(i)));
 		}
 
 		log.add(builder.toString());

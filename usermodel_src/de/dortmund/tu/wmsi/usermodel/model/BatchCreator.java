@@ -65,24 +65,17 @@ public class BatchCreator {
 		int batchsize = this.sampleBatchSize();
 		//System.out.println("User: " + user.getUserId() + " batchsize: " + batchsize);
 		
+		setGaussRuntime(j);
+		
 		for (int i = 1; i < batchsize; i++) {
 			t_start += this.sampleInterArrivalTime();
 			
 			j = jobcreator.createJob();
 			j.set(Job.SUBMIT_TIME, t_start);
 			j.set(Job.RESOURCES_REQUESTED, CORES);
+			j.set(Job.RESOURCES_ALLOCATED, CORES);
 			j.set(Job.USER_ID, user.getUserId());
-			
-			double t_run = (double)j.get(Job.TIME_REQUESTED);
-			
-			double standardDeviation = t_run/4; // 95% of values hit the [0,t_run] interval
-			double mean = t_run/2; // mean is middle of the runtime
-			
-			double gaussRandom = StatisticalMathHelper.normalDistributedSD(mean, standardDeviation);
-			gaussRandom = Math.min(gaussRandom, t_run);//limit execution time, job abortion isn't modelled yet
-			gaussRandom = Math.max(gaussRandom, 1);//limit execution time, job abortion isn't modelled yet
-			
-			j.set(Job.RUN_TIME, (long)gaussRandom);
+			setGaussRuntime(j);
 			
 			if(j.get(Job.RUN_TIME) >= 1 && j.get(Job.RUN_TIME) <= j.get(Job.TIME_REQUESTED))
 				batch.add(j);
@@ -92,6 +85,21 @@ public class BatchCreator {
 		return batch;
 	}
 
+	private void setGaussRuntime(Job job) {
+		double t_run = (double)job.get(Job.TIME_REQUESTED);
+		
+		double mean = t_run/2d; // mean is middle of the runtime
+		double standardDeviation = t_run/4d; // 95% of values hit the [0,t_run] interval
+		
+		double gaussRandom = StatisticalMathHelper.normalDistributedSD(mean, standardDeviation);
+		gaussRandom = Math.min(gaussRandom, t_run);//limit execution time, job abortion isn't modelled yet
+		gaussRandom = Math.max(gaussRandom, 1);//limit execution time, job abortion isn't modelled yet
+
+		//System.out.println(t_run+" -> N["+mean+","+standardDeviation+"] = "+(long)gaussRandom);
+		
+		//job.set(Job.RUN_TIME, (long)gaussRandom);
+		job.set(Job.RUN_TIME, (long)t_run);
+	}
 
 	/**
 	 * 

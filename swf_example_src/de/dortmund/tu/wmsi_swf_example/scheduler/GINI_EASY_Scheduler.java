@@ -81,7 +81,7 @@ public class GINI_EASY_Scheduler implements Scheduler {
 		SimulationInterface.log("schedule size: "+schedule.getScheduleSize());
 		
 		for(Job job : queue) {
-			job.set(Job.WAIT_TIME, t_now-job.get(Job.SUBMIT_TIME));
+			job.set(Job.WAIT_TIME, t_now - job.get(Job.SUBMIT_TIME));
 		}
 		
 		for (Long user : waitTime.keySet()) {
@@ -118,11 +118,8 @@ public class GINI_EASY_Scheduler implements Scheduler {
 						schedule.addToSchedule(job, t_now);
 						long userId = job.get(Job.USER_ID);
 						
-						waitTime.put(userId, Math.max(0L,
-								waitTime.getOrDefault(userId,0L)
-								+job.get(Job.WAIT_TIME)
-								-StatisticalMathHelper.userAccepteableWaitTime075(job.get(Job.TIME_REQUESTED)))
-								);
+						waitTime.put(userId, Math.max(0, waitTime.getOrDefault(userId,0L) + job.get(Job.WAIT_TIME)
+								/*-StatisticalMathHelper.userAccepteableWaitTime075(job.get(Job.TIME_REQUESTED))*/));
 						
 						jobCount.put(userId, jobCount.getOrDefault(userId,0L)+1L);
 						awwtDirty = true;
