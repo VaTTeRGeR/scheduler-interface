@@ -14,12 +14,12 @@ public class UserModelMain {
 		
 		SimulationInterface.destroy();*/
 
-		si = SimulationInterface.instance();
+		/*si = SimulationInterface.instance();
 
 		si.configure("usermodel_config/simulation_easy.properties");
 		si.simulate();
 		
-		SimulationInterface.destroy();
+		SimulationInterface.destroy();*/
 
 		/*si.configure("usermodel_config/simulation_gini.properties");
 		si.simulate();
@@ -32,9 +32,16 @@ public class UserModelMain {
 		
 		SimulationInterface.destroy();*/
 
+		//si = SimulationInterface.instance();
+
+		//si.configure("usermodel_config/simulation_gini_easy.properties");
+		//si.simulate();
+		
+		//SimulationInterface.destroy();
+
 		si = SimulationInterface.instance();
 
-		si.configure("usermodel_config/simulation_gini_easy.properties");
+		si.configure("usermodel_config/simulation_gini_easy_limited_sort.properties");
 		si.simulate();
 		
 		SimulationInterface.destroy();

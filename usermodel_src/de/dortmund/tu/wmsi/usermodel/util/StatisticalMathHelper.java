@@ -19,8 +19,8 @@ public class StatisticalMathHelper {
 	}
 
 	public static long userAccepteableWaitTime075(long run_time){
-		final double c1 = 2.28;
-		final double c2 = 215.75*60.0; // 215.75 minutes in seconds
+		final double c1 = 1.70;
+		final double c2 = 31.51*60.0; // 215.75 minutes in seconds
 		final double pj = (double)run_time;
 		return (long)((linearRegression(pj, c1, c2)-1.0)*pj);
 	}
