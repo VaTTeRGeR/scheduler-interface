@@ -8,6 +8,7 @@ import de.dortmund.tu.wmsi.event.JobEvent;
 import de.dortmund.tu.wmsi.event.JobFinishedEvent;
 import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
+import de.dortmund.tu.wmsi.job.JobIDCounter;
 import de.dortmund.tu.wmsi.listener.JobFinishedListener;
 import de.dortmund.tu.wmsi.listener.JobStartedListener;
 import de.dortmund.tu.wmsi.logger.Logger;
@@ -57,10 +58,11 @@ public class SimulationInterface {
 	 * Returns an instance of SimulationInterface
 	*/
 	public static SimulationInterface instance() {
-		if (instance == null)
+		if (instance == null) {
 			return (instance = new SimulationInterface());
-		else
+		} else {
 			return instance;
+		}
 	}
 	
 	public static void destroy() {
@@ -153,6 +155,8 @@ public class SimulationInterface {
 	}
 
 	public void simulate() {
+		JobIDCounter.resetID();
+
 		t_now = t_begin;
 		t_next = t_end;
 		times[END] = t_end;

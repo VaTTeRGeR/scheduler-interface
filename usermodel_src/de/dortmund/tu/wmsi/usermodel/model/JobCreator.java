@@ -6,12 +6,11 @@ import java.util.List;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
 import de.dortmund.tu.wmsi.job.Job;
+import de.dortmund.tu.wmsi.job.JobIDCounter;
 
 public class JobCreator {
 	
 	private User user;
-	
-	private static int numberOfGeneratedJobs = 0;
 	
 	private static int PROCESSORS[] = { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 8192*2, 8192*4, 8192*8, 8192*16, 8192*32, 8192*64 };
 	
@@ -199,7 +198,7 @@ public class JobCreator {
 		Job j = new Job();
 		
 		j.set(Job.USER_ID, this.user.getUserId());
-		j.set(Job.JOB_ID, ++numberOfGeneratedJobs);
+		j.set(Job.JOB_ID, JobIDCounter.nextID());
 
 		return j;
 	}
