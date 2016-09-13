@@ -17,20 +17,22 @@ import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
 public class AVGWTLogger implements Logger {
 
-	private HashMap<Long, Long> userToWaitTime = new HashMap<Long, Long>();
-	private HashMap<Long, Long> userToJobCount = new HashMap<Long, Long>();
-	
-	private Queue<String> log = new LinkedList<String>();
+	private HashMap	<Long, Long>	userToWaitTime;
+	private HashMap	<Long, Long>	userToJobCount;
+	private static Queue	<String> log = new LinkedList<String>();
+
 	private PropertiesHandler properties = null;
 	
 	@Override
 	public void initialize() {
-		log.clear();
+		clear();
+
 		StringBuilder builder = new StringBuilder();
 		
-		builder.append("%"+String.format("%11s", "AVG_WAITTIME"));
-		
-		log.add(builder.toString());
+		if(log.isEmpty()) {
+			builder.append("%"+String.format("%11s", "AVG_WAITTIME"));
+			log.add(builder.toString());
+		}
 
 		if(properties != null) {
 			final String swfPath = properties.getString("swf_output_file", null);
@@ -40,10 +42,17 @@ public class AVGWTLogger implements Logger {
 					.register(new WorkloadModelRoutine(new RoutineTimingOnce(SimulationInterface.instance().getSimulationEndTime() - 1L)) {
 						@Override
 						public void process(long time) {
-							long avgWaitTime = 0;
+							long sumUserAverageWaitTimes = 0;
 							long userCount = userToWaitTime.size();
-							for(Long wt : userToWaitTime.)
+							for(Long wt : userToWaitTime.keySet()) {
+								sumUserAverageWaitTimes += userToWaitTime.get(wt)/userToJobCount.get(wt);
+							}
+							long avgWaitTime = sumUserAverageWaitTimes/userCount;
+							
+							log.add(String.valueOf(avgWaitTime));
+							
 							saveLog(swfPath);
+							
 							if (printToConsole) {
 								printLog();
 							}
@@ -68,7 +77,7 @@ public class AVGWTLogger implements Logger {
 		long wt = userToWaitTime.getOrDefault(user, 0L);
 		long jc = userToJobCount.getOrDefault(user, 0L);
 		
-		wt+=job.get(Job.RUN_TIME);
+		wt += job.get(Job.RUN_TIME);
 		jc++;
 		
 		userToWaitTime.put(user, wt);
@@ -102,9 +111,14 @@ public class AVGWTLogger implements Logger {
 	}
 	
 	public void clear() {
-		log.clear();
+		userToWaitTime = new HashMap<Long, Long>();
+		userToJobCount = new HashMap<Long, Long>();
 	}
 
 	@Override
 	public void jobStarted(JobStartedEvent event) {}
+
+	public static void resetLog() {
+		log.clear();
+	}
 }
