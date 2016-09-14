@@ -19,6 +19,7 @@ public class AVGWTLogger implements Logger {
 
 	private HashMap	<Long, Long>	userToWaitTime;
 	private HashMap	<Long, Long>	userToJobCount;
+	private long globalWaitTime = 0, globalJobCount = 0;
 	private static Queue	<String> log = new LinkedList<String>();
 
 	private PropertiesHandler properties = null;
@@ -49,7 +50,7 @@ public class AVGWTLogger implements Logger {
 							}
 							long avgWaitTime = sumUserAverageWaitTimes/userCount;
 							
-							log.add(String.valueOf(avgWaitTime));
+							log.add(avgWaitTime+"\t"+(globalWaitTime/globalJobCount));
 							
 							saveLog(swfPath);
 							
@@ -77,11 +78,14 @@ public class AVGWTLogger implements Logger {
 		long wt = userToWaitTime.getOrDefault(user, 0L);
 		long jc = userToJobCount.getOrDefault(user, 0L);
 		
-		wt += job.get(Job.RUN_TIME);
+		wt += job.get(Job.WAIT_TIME);
 		jc++;
 		
 		userToWaitTime.put(user, wt);
 		userToJobCount.put(user, jc);
+		
+		globalWaitTime += job.get(Job.WAIT_TIME);
+		globalJobCount++;
 	}
 	
 	public String[] getLog() {
@@ -111,6 +115,8 @@ public class AVGWTLogger implements Logger {
 	}
 	
 	public void clear() {
+		globalWaitTime = 0;
+		globalJobCount = 0;
 		userToWaitTime = new HashMap<Long, Long>();
 		userToJobCount = new HashMap<Long, Long>();
 	}
