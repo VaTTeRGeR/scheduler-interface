@@ -1,7 +1,7 @@
 package de.dortmund.tu.wmsi_swf_example.scheduler;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.LinkedList;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
@@ -14,40 +14,33 @@ import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
-public class GINI_EASY_Scheduler implements Scheduler {
+public class RELATIVE_OVERTIME_Scheduler implements Scheduler {
 
 	private LinkedList<Job> queue;
+
 	private Schedule schedule;
 	
-	private HashMap<Long, Long> waitTime;
-	private HashMap<Long, Long> jobCount;
-	private HashMap<Long, Double> avgwwt;
-	private boolean awwtDirty = false;
+	private Comparator<Job> comparator;
 
 	private long reservation_begin = Long.MIN_VALUE;
 	private Job reservation_job = null;
 	
 	private long res_max = -1;
-	private long wait_max = -1;
+	
+	private long t_last_execution = Long.MIN_VALUE;
 	
 	@Override
 	public void initialize() {
+		t_last_execution = Long.MIN_VALUE;
 		reservation_begin = Long.MIN_VALUE;
 		if(res_max == -1)
 			throw new IllegalStateException("FCFS_Scheduler has no resource count configured");
 		else if(res_max < 0)
 			throw new IllegalStateException("FCFS_Scheduler has a negative resource count configured");
-		if(wait_max == -1)
-			throw new IllegalStateException("FCFS_Scheduler has no wait time configured");
-		else if(wait_max < 0)
-			throw new IllegalStateException("FCFS_Scheduler has a negative max wait time configured");
 		
 		queue = new LinkedList<Job>();
 		schedule = new Schedule(res_max);
-		waitTime = new HashMap<Long, Long>();
-		jobCount = new HashMap<Long, Long>();
-		avgwwt = new HashMap<Long, Double>();
-		jwtcGini = new JobWaitTimeComparatorGini(waitTime, jobCount, avgwwt, wait_max);
+		comparator = new JobExceedWaitTimeComparatorRelative();
 	}
 
 	@Override
@@ -60,40 +53,37 @@ public class GINI_EASY_Scheduler implements Scheduler {
 		PropertiesHandler properties = new PropertiesHandler(configPath);
 		
 		setMaxResources(properties.getLong("resources", Long.MAX_VALUE));
-		setMaxWaitTime(properties.getLong("wait_threshold", -1));
 	}
 	
-	public GINI_EASY_Scheduler setMaxResources(long res_max) {
+	public RELATIVE_OVERTIME_Scheduler setMaxResources(long res_max) {
 		this.res_max = res_max;
 		schedule = new Schedule(res_max);
-		return this;
-	}
-	
-	public GINI_EASY_Scheduler setMaxWaitTime(long wait_max) {
-		this.wait_max = wait_max;
 		return this;
 	}
 	
 	@Override
 	public long simulateUntil(long t_now, long t_target) {
 		SimulationInterface.log(schedule.getResourcesUsed()+"/"+res_max+" resources in use");
-		SimulationInterface.log("queue size: "+queue.size());
+		SimulationInterface.log("queue size: "+(queue.size()));
 		SimulationInterface.log("schedule size: "+schedule.getScheduleSize());
 		
 		for(Job job : queue) {
 			job.set(Job.WAIT_TIME, t_now - job.get(Job.SUBMIT_TIME));
 		}
 		
-		for (Long user : waitTime.keySet()) {
-			avgwwt.put(user, ((double)waitTime.get(user))/(double)jobCount.get(user));
+		if(t_now > t_last_execution) {
+			t_last_execution = t_now;
+			Collections.sort(queue, comparator);
 		}
 		
-		if(awwtDirty) {
-			jwtcGini.prepareCompare(queue);
-			awwtDirty = false;
+		/*for (Job job : queue) {
+			long accWaitTime = job.get(Job.TIME_REQUESTED) + StatisticalMathHelper.userAccepteableWaitTime075(job.get(Job.TIME_REQUESTED));
+			long delta = accWaitTime / Math.max(job.get(Job.WAIT_TIME), 1);
+			System.out.println("WT: "+job.get(Job.WAIT_TIME)+" - USER_TIME: "+job.get(Job.TIME_REQUESTED)+" - ACCWT: "+accWaitTime+" - DELTA: "+delta);
 		}
-		Collections.sort(queue, jwtcGini);
+		System.out.println();*/
 
+		
 		if(!queue.isEmpty()) {
 			if(reservation_job == null) {
 				reservation_begin = schedule.getNextFitTime(queue.peek(), t_now);
@@ -102,27 +92,16 @@ public class GINI_EASY_Scheduler implements Scheduler {
 			} else if (schedule.isFitToSchedule(reservation_job)) {
 				schedule.addToSchedule(reservation_job, t_now);
 				SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, reservation_job));
-				long userId = reservation_job.get(Job.USER_ID);
-				waitTime.put(userId, waitTime.getOrDefault(userId,0L)+reservation_job.get(Job.WAIT_TIME));
-				jobCount.put(userId, jobCount.getOrDefault(userId,0L)+1L);
-				awwtDirty = true;
 				removeReservation();
 				return t_now;
 			} else {
-				SimulationInterface.log("backfilling jobs that end before: " + reservation_begin);
+				SimulationInterface.log("backfilling jobs from unsorted queue that end before: " + reservation_begin);
 				for (Job job : queue) {
-					if (schedule.isFitToSchedule(job) && job.getRunDuration() + t_now < reservation_begin) {
+					if (schedule.isFitToSchedule(job) && isFinishedBeforeReservation(job, t_now)) {
 						SimulationInterface.log("backfilled job: " + job.getJobId() + " running from " + t_now + " to " + (t_now + job.getRunDuration()));
 						queue.remove(job);
 						SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
 						schedule.addToSchedule(job, t_now);
-						long userId = job.get(Job.USER_ID);
-						
-						waitTime.put(userId, Math.max(0, waitTime.getOrDefault(userId,0L) + job.get(Job.WAIT_TIME)
-								-StatisticalMathHelper.userAccepteableWaitTime(job.get(Job.TIME_REQUESTED))));
-						
-						jobCount.put(userId, jobCount.getOrDefault(userId,0L)+1L);
-						awwtDirty = true;
 						return t_now;
 					}
 				}
@@ -147,6 +126,10 @@ public class GINI_EASY_Scheduler implements Scheduler {
 		return (t_now = t_target);
 	}
 	
+	private boolean isFinishedBeforeReservation(Job job, long t_now) {
+		return job.getRunDuration() + t_now < reservation_begin;
+	}
+	
 	private void removeReservation() {
 		reservation_begin = Long.MIN_VALUE;
 		reservation_job = null;
@@ -157,8 +140,6 @@ public class GINI_EASY_Scheduler implements Scheduler {
 		if(job.get(Job.USER_ID) == Job.NOT_SET)
 			throw new IllegalStateException("Job "+job.getJobId()+" has no User set!");
 		queue.add(job);
-		awwtDirty = true;
+		t_last_execution = Long.MIN_VALUE;
 	}
-
-	private JobWaitTimeComparatorGini jwtcGini;
 }

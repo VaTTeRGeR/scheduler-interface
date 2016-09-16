@@ -2,6 +2,7 @@ package de.dortmund.tu.wmsi_swf_example.logger;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -23,6 +24,7 @@ public class AVGWTLogger implements Logger {
 	private long throughput = 0;
 	private long t_last_submit = Long.MIN_VALUE;
 	private long t_last_finish = Long.MIN_VALUE;
+	private long max_resources = 0;
 	private static Queue	<String> log = new LinkedList<String>();
 
 	private PropertiesHandler properties = null;
@@ -45,6 +47,7 @@ public class AVGWTLogger implements Logger {
 		if(properties != null) {
 			final String swfPath = properties.getString("swf_output_file", null);
 			final boolean printToConsole = properties.getBoolean("print_to_console", false);
+			max_resources = properties.getLong("resources", Long.MAX_VALUE);
 
 			SimulationInterface.instance()
 					.register(new WorkloadModelRoutine(new RoutineTimingOnce(SimulationInterface.instance().getSimulationEndTime() - 1L)) {
@@ -59,7 +62,10 @@ public class AVGWTLogger implements Logger {
 							
 							SimulationInterface si = SimulationInterface.instance();
 							long t_simulated = si.getSimulationEndTime()-si.getSimulationBeginTime();
-							log.add(String.format("%16s", avgWaitTime)+String.format("%16s", (globalWaitTime/globalJobCount))+String.format("%16s", (throughput/t_simulated))+String.format("%16s", t_last_submit)+String.format("%16s", t_last_finish));
+							
+							double tp = ((double)(throughput/t_simulated))/(double)max_resources;
+							
+							log.add(String.format("%16s", avgWaitTime)+String.format("%16s", (globalWaitTime/globalJobCount))+String.format("%16s", new DecimalFormat("0.0000").format(tp))+String.format("%16s", t_last_submit)+String.format("%16s", t_last_finish));
 							
 							saveLog(swfPath);
 							

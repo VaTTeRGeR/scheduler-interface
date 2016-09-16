@@ -39,7 +39,7 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 		
 		queue = new LinkedList<Job>();
 		schedule = new Schedule(res_max);
-		comparator = new JobExceedWaitTimeComparator();
+		comparator = new JobExceedWaitTimeComparatorAbsolute();
 	}
 
 	@Override

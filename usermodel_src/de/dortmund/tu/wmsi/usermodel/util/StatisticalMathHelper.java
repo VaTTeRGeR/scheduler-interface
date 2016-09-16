@@ -18,11 +18,15 @@ public class StatisticalMathHelper {
 		return Math.max(temp/pj, 1d);
 	}
 
-	public static long userAccepteableWaitTime075(long run_time){
-		final double	m1 = 1,
-						m2 = 1;
-		final double c1 = 1.7 * m1;
-		final double c2 = 29.51 * 60.0 * m2; // 29.51 minutes in seconds
+	static double c1 = 1.7;
+	static double c2 = 29.51 * 60.0; // 29.51 minutes in seconds
+	
+	public static void setUserAccepteableWaitTimeParameters(double c1, double c2) {
+		StatisticalMathHelper.c1 = c1;
+		StatisticalMathHelper.c2 = c2;
+	}
+	
+	public static long userAccepteableWaitTime(long run_time){
 		final double pj = (double)run_time;
 		return Math.max((long)((linearRegression(pj, c1, c2)-1.0)*pj), 0);
 	}

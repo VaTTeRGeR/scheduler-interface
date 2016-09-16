@@ -132,7 +132,7 @@ public class GINI_EASY_LIMITED_SORT_Scheduler implements Scheduler {
 				
 				waitTime.put(userId, Math.max(0, waitTime.getOrDefault(userId,0L)
 						+ reservation_job.get(Job.WAIT_TIME)
-						-StatisticalMathHelper.userAccepteableWaitTime075(reservation_job.get(Job.TIME_REQUESTED))));
+						-StatisticalMathHelper.userAccepteableWaitTime(reservation_job.get(Job.TIME_REQUESTED))));
 				
 				jobCount.put(userId, jobCount.getOrDefault(userId,0L)+1L);
 				sortedQueueDirty = true;
@@ -150,7 +150,7 @@ public class GINI_EASY_LIMITED_SORT_Scheduler implements Scheduler {
 						
 						waitTime.put(userId, Math.max(0, waitTime.getOrDefault(userId,0L)
 								+ job.get(Job.WAIT_TIME)
-								-StatisticalMathHelper.userAccepteableWaitTime075(job.get(Job.TIME_REQUESTED))));
+								-StatisticalMathHelper.userAccepteableWaitTime(job.get(Job.TIME_REQUESTED))));
 						
 						jobCount.put(userId, jobCount.getOrDefault(userId,0L)+1L);
 						sortedQueueDirty = true;
@@ -168,7 +168,7 @@ public class GINI_EASY_LIMITED_SORT_Scheduler implements Scheduler {
 						
 						waitTime.put(userId, Math.max(0, waitTime.getOrDefault(userId,0L)
 								+ job.get(Job.WAIT_TIME)
-								-StatisticalMathHelper.userAccepteableWaitTime075(job.get(Job.TIME_REQUESTED))));
+								-StatisticalMathHelper.userAccepteableWaitTime(job.get(Job.TIME_REQUESTED))));
 						
 						jobCount.put(userId, jobCount.getOrDefault(userId,0L)+1L);
 						sortedQueueDirty = true;
