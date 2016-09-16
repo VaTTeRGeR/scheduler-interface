@@ -10,7 +10,6 @@ import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.scheduler.Schedule;
 import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
-import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
@@ -76,12 +75,12 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 			Collections.sort(queue, comparator);
 		}
 		
-		for (Job job : queue) {
+		/*for (Job job : queue) {
 			long accWaitTime = job.get(Job.TIME_REQUESTED) + StatisticalMathHelper.userAccepteableWaitTime075(job.get(Job.TIME_REQUESTED));
 			long delta = accWaitTime - job.get(Job.WAIT_TIME);
 			System.out.println("WT: "+job.get(Job.WAIT_TIME)+" - USER_TIME: "+job.get(Job.TIME_REQUESTED)+" - ACCWT: "+accWaitTime+" - DELTA: "+delta);
 		}
-		System.out.println();
+		System.out.println();*/
 
 		
 		if(!queue.isEmpty()) {
