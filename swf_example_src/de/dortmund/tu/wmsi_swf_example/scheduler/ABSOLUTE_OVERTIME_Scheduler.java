@@ -10,6 +10,7 @@ import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.scheduler.Schedule;
 import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
+import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
@@ -19,8 +20,6 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 
 	private Schedule schedule;
 	
-	private boolean queueDirty = false;
-
 	private Comparator<Job> comparator;
 
 	private long reservation_begin = Long.MIN_VALUE;
@@ -28,8 +27,11 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 	
 	private long res_max = -1;
 	
+	private long t_last_execution = Long.MIN_VALUE;
+	
 	@Override
 	public void initialize() {
+		t_last_execution = Long.MIN_VALUE;
 		reservation_begin = Long.MIN_VALUE;
 		if(res_max == -1)
 			throw new IllegalStateException("FCFS_Scheduler has no resource count configured");
@@ -69,21 +71,27 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 			job.set(Job.WAIT_TIME, t_now - job.get(Job.SUBMIT_TIME));
 		}
 		
-		if(queueDirty) {
+		if(t_now > t_last_execution) {
+			t_last_execution = t_now;
 			Collections.sort(queue, comparator);
-			queueDirty = false;
 		}
+		
+		for (Job job : queue) {
+			long accWaitTime = job.get(Job.TIME_REQUESTED) + StatisticalMathHelper.userAccepteableWaitTime075(job.get(Job.TIME_REQUESTED));
+			long delta = accWaitTime - job.get(Job.WAIT_TIME);
+			System.out.println("WT: "+job.get(Job.WAIT_TIME)+" - USER_TIME: "+job.get(Job.TIME_REQUESTED)+" - ACCWT: "+accWaitTime+" - DELTA: "+delta);
+		}
+		System.out.println();
+
 		
 		if(!queue.isEmpty()) {
 			if(reservation_job == null) {
 				reservation_begin = schedule.getNextFitTime(queue.peek(), t_now);
 				reservation_job = queue.poll();
-				queueDirty = true;
 				return t_now;
 			} else if (schedule.isFitToSchedule(reservation_job)) {
 				schedule.addToSchedule(reservation_job, t_now);
 				SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, reservation_job));
-				queueDirty = true;
 				removeReservation();
 				return t_now;
 			} else {
@@ -94,7 +102,6 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 						queue.remove(job);
 						SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
 						schedule.addToSchedule(job, t_now);
-						queueDirty = true;
 						return t_now;
 					}
 				}
@@ -133,6 +140,6 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 		if(job.get(Job.USER_ID) == Job.NOT_SET)
 			throw new IllegalStateException("Job "+job.getJobId()+" has no User set!");
 		queue.add(job);
-		queueDirty = true;
+		t_last_execution = Long.MIN_VALUE;
 	}
 }

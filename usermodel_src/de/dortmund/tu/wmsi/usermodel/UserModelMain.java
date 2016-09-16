@@ -1,7 +1,6 @@
 package de.dortmund.tu.wmsi.usermodel;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
-import de.dortmund.tu.wmsi_swf_example.logger.AVGWTLogger;
 
 public class UserModelMain {
 
