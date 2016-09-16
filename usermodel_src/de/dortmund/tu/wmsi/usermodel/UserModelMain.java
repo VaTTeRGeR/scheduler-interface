@@ -1,7 +1,6 @@
 package de.dortmund.tu.wmsi.usermodel;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.DecimalFormat;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
@@ -12,8 +11,9 @@ public class UserModelMain {
 
 	public static void main(String[] args) {
 		runsim(1.7, 29.51 * 60.0);
-		runsim(1.7, 0);
+		runsim(1.7, 0.0);
 		runsim(1.14, -166.19 * 60.0);
+		runsim(1.14, 0.0);
 	}
 	
 	private static void runsim(double c1, double c2) {
