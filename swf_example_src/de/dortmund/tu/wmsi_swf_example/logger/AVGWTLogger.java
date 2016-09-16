@@ -21,6 +21,8 @@ public class AVGWTLogger implements Logger {
 	private HashMap	<Long, Long>	userToJobCount;
 	private long globalWaitTime = 0, globalJobCount = 0;
 	private long throughput = 0;
+	private long t_last_submit = Long.MIN_VALUE;
+	private long t_last_finish = Long.MIN_VALUE;
 	private static Queue	<String> log = new LinkedList<String>();
 
 	private PropertiesHandler properties = null;
@@ -32,7 +34,11 @@ public class AVGWTLogger implements Logger {
 		StringBuilder builder = new StringBuilder();
 		
 		if(log.isEmpty()) {
-			builder.append("%"+String.format("%11s", "AVG_WAITTIME"));
+			builder.append("%"+String.format("%15s", "AVGWT_U"));
+			builder.append(String.format("%16s", "AVGWT_ALL"));
+			builder.append(String.format("%16s", "THROUGHPUT"));
+			builder.append(String.format("%16s", "LAST_SUBMIT"));
+			builder.append(String.format("%16s", "LAST_FINISH"));
 			log.add(builder.toString());
 		}
 
@@ -53,7 +59,7 @@ public class AVGWTLogger implements Logger {
 							
 							SimulationInterface si = SimulationInterface.instance();
 							long t_simulated = si.getSimulationEndTime()-si.getSimulationBeginTime();
-							log.add(avgWaitTime+"\t"+(globalWaitTime/globalJobCount)+"\t"+(throughput/t_simulated));
+							log.add(String.format("%16s", avgWaitTime)+String.format("%16s", (globalWaitTime/globalJobCount))+String.format("%16s", (throughput/t_simulated))+String.format("%16s", t_last_submit)+String.format("%16s", t_last_finish));
 							
 							saveLog(swfPath);
 							
@@ -91,6 +97,11 @@ public class AVGWTLogger implements Logger {
 		globalJobCount++;
 		
 		throughput += job.get(Job.RUN_TIME)*job.get(Job.RESOURCES_REQUESTED);
+		
+		if(t_last_submit <= job.get(Job.SUBMIT_TIME)) {
+			t_last_submit = job.get(Job.SUBMIT_TIME);
+			t_last_finish = job.get(Job.SUBMIT_TIME)+job.get(Job.WAIT_TIME)+job.get(Job.RUN_TIME);
+		}
 	}
 	
 	public String[] getLog() {
@@ -123,6 +134,8 @@ public class AVGWTLogger implements Logger {
 		globalWaitTime = 0;
 		globalJobCount = 0;
 		throughput = 0;
+		t_last_submit = Long.MIN_VALUE;
+		t_last_finish = Long.MIN_VALUE;
 		userToWaitTime = new HashMap<Long, Long>();
 		userToJobCount = new HashMap<Long, Long>();
 	}
