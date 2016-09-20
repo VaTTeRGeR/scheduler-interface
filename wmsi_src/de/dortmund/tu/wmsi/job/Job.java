@@ -88,4 +88,9 @@ public class Job {
 	public boolean isValid() {
 		return getResourcesRequested() > 0 && getRunDuration() >= 0 && getJobId() >= 0;
 	};
+	
+	@Override
+	public String toString() {
+		return String.valueOf(get(JOB_ID));
+	}
 }

@@ -66,7 +66,7 @@ public class EASY_Scheduler implements Scheduler {
 			} else {
 				SimulationInterface.log("backfilling jobs that end before: " + reservation_begin);
 				for (Job job : queue) {
-					if (schedule.isFitToSchedule(job) && job.getRunDuration() + t_now < reservation_begin && !job.equals(queue.peek())) {
+					if (schedule.isFitToSchedule(job) && job.get(Job.TIME_REQUESTED) + t_now < reservation_begin && !job.equals(queue.peek())) {
 						SimulationInterface.log("backfilled job: " + job.getJobId() + " running from "+t_now+" to "+(t_now+job.getRunDuration()));
 						queue.remove(job);
 						schedule.addToSchedule(job, t_now);

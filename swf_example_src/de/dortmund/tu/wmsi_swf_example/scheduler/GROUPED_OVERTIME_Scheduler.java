@@ -12,28 +12,31 @@ import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.scheduler.Schedule;
 import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
+import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
-import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobExceedWaitTimeComparatorAbsolute;
 import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobGroupExceedWaitTimeComparatorAbsolute;
 
 public class GROUPED_OVERTIME_Scheduler implements Scheduler {
 
-	private LinkedList<Job> queue;
-	private LinkedList<UserJobGroup> groupQueue;
-	private HashMap<Job, UserJobGroup> jobToGroupMap;
+	private LinkedList<Job> queue; //Stores the sorted jobs
+	private LinkedList<UserJobGroup> groupQueue; //stores the groups except the primary group
+	private HashMap<Job, UserJobGroup> jobToGroupMap; //allows for removing jobs from groups
 
-	private Schedule schedule;
+	private Schedule schedule; //the current schedule
 	
-	private Comparator<Job> comparatorJob;
-	private Comparator<UserJobGroup> comparatorJobGroup;
+	private Comparator<UserJobGroup> comparatorJobGroup; //
 
 	private long reservation_begin = Long.MIN_VALUE;
 	private Job reservation_job = null;
 	private UserJobGroup reservation_jobGroup = null;
 	
 	private long res_max = -1;
+	private long t_threshold = -1;
 	
 	private long t_last_sort = Long.MIN_VALUE;
+
+	private static final boolean debugQueue = false;
+	private static final boolean debugGroup = false;
 	
 	@Override
 	public void initialize() {
@@ -48,7 +51,6 @@ public class GROUPED_OVERTIME_Scheduler implements Scheduler {
 		
 		schedule = new Schedule(res_max);
 		
-		comparatorJob = new JobExceedWaitTimeComparatorAbsolute();
 		comparatorJobGroup = new JobGroupExceedWaitTimeComparatorAbsolute();
 		
 		reservation_begin = Long.MIN_VALUE;
@@ -68,6 +70,8 @@ public class GROUPED_OVERTIME_Scheduler implements Scheduler {
 		PropertiesHandler properties = new PropertiesHandler(configPath);
 		
 		setMaxResources(properties.getLong("resources", Long.MAX_VALUE));
+	
+		t_threshold = 30*60; // 30 min max interarrival time
 	}
 	
 	public GROUPED_OVERTIME_Scheduler setMaxResources(long res_max) {
@@ -82,20 +86,27 @@ public class GROUPED_OVERTIME_Scheduler implements Scheduler {
 		SimulationInterface.log("queue size: "+(queue.size()));
 		SimulationInterface.log("schedule size: "+schedule.getScheduleSize());
 
-		if(t_now > t_last_sort) {
+		if(true && t_now > t_last_sort) {
 			t_last_sort = t_now;
 			
-			Collections.sort(groupQueue, comparatorJobGroup);
-
 			if(!groupQueue.isEmpty() && reservation_jobGroup == null) {
 				reservation_jobGroup = groupQueue.poll();
+				if(debugGroup)
+					System.out.println("New primary Job Group selected: "+reservation_jobGroup.user+" - Job "+reservation_jobGroup.jobs.peek());
+			}
+
+			if(reservation_jobGroup != null) {
 				for (Job job : reservation_jobGroup.jobs) {
 					job.set(Job.WAIT_TIME, t_now - job.get(Job.SUBMIT_TIME));
 				}
-				reservation_jobGroup.sort(comparatorJob);
-				
-				System.out.println("New Job Group selected: "+reservation_jobGroup.user);
 			}
+			for (UserJobGroup ujg : groupQueue) {
+				for (Job job : ujg.jobs) {
+					job.set(Job.WAIT_TIME, t_now - job.get(Job.SUBMIT_TIME));
+				}
+			}
+			
+			Collections.sort(groupQueue, comparatorJobGroup);
 			
 			queue.clear();
 			
@@ -104,32 +115,39 @@ public class GROUPED_OVERTIME_Scheduler implements Scheduler {
 					queue.add(job);
 				}
 			}
-			
 			for (UserJobGroup ujg : groupQueue) {
-				for (Job job : ujg.jobs) {
-					job.set(Job.WAIT_TIME, t_now - job.get(Job.SUBMIT_TIME));
-				}
-				
-				ujg.sort(comparatorJob);
-				
 				for (Job job : ujg.jobs) {
 					queue.add(job);
 				}
 			}
 		}
 		
-		
-		
-		/*for (Job job : queue) {
-			long accWaitTime = job.get(Job.TIME_REQUESTED) + StatisticalMathHelper.userAccepteableWaitTime075(job.get(Job.TIME_REQUESTED));
-			long delta = accWaitTime - job.get(Job.WAIT_TIME);
-			System.out.println("WT: "+job.get(Job.WAIT_TIME)+" - USER_TIME: "+job.get(Job.TIME_REQUESTED)+" - ACCWT: "+accWaitTime+" - DELTA: "+delta);
-		}
-		System.out.println();*/
 
 		
 		if(!queue.isEmpty()) {
-			if(reservation_job == null) {
+			
+			if(debugQueue) {
+				System.out.println();
+				System.out.println("----------------------------------------------");
+				System.out.println();
+				long prev_userid = queue.peek().get(Job.USER_ID);
+				for (Job job : queue) {
+					if (prev_userid != job.get(Job.USER_ID)) {
+						System.out.println();
+					}
+					prev_userid = job.get(Job.USER_ID);
+					long accWaitTime = job.get(Job.TIME_REQUESTED)
+							+ StatisticalMathHelper.userAccepteableWaitTime(job.get(Job.TIME_REQUESTED));
+					long delta = accWaitTime - job.get(Job.WAIT_TIME);
+					System.out.println("WT: " + job.get(Job.WAIT_TIME) + " - USER_TIME: " + job.get(Job.TIME_REQUESTED)
+							+ " - ACCWT: " + accWaitTime + " - DELTA: " + delta);
+				}
+				System.out.println();
+				System.out.println("----------------------------------------------");
+				System.out.println();
+			}
+
+			if(reservation_job == null && reservation_jobGroup != null) { // A new reserved job can be chosen if a primary group is set
 				reservation_begin = schedule.getNextFitTime(queue.peek(), t_now);
 				reservation_job = queue.poll();
 
@@ -141,11 +159,15 @@ public class GROUPED_OVERTIME_Scheduler implements Scheduler {
 				}
 				jobToGroupMap.remove(reservation_job);
 				
+				if(debugGroup)
+					System.out.println("Reserving primary spot for user: "+reservation_job.get(Job.USER_ID)+" - Job "+reservation_job);
+
 				return t_now;
-			} else if (schedule.isFitToSchedule(reservation_job)) {
+			} else if (reservation_job != null && schedule.isFitToSchedule(reservation_job)) { // primary job gets scheduled
 				SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, reservation_job));
 				
-				System.out.println("Scheduling reserved job of user: "+reservation_job.get(Job.USER_ID));
+				if(debugGroup)
+					System.out.println("Scheduling reserved job of user: "+reservation_job.get(Job.USER_ID)+" - Job "+reservation_job);
 				
 				schedule.addToSchedule(reservation_job, t_now);
 
@@ -153,8 +175,8 @@ public class GROUPED_OVERTIME_Scheduler implements Scheduler {
 				reservation_job = null;
 				
 				return t_now;
-			} else {
-				SimulationInterface.log("backfilling jobs from unsorted queue that end before: " + reservation_begin);
+			} else { // backfilling from all groups. order is: high to low priority
+				SimulationInterface.log("backfilling jobs from queue that end before: " + reservation_begin);
 				for (Job job : queue) {
 					if (schedule.isFitToSchedule(job) && isFinishedBeforeReservation(job, t_now)) {
 						SimulationInterface.log("backfilled job: " + job.getJobId() + " running from " + t_now + " to " + (t_now + job.getRunDuration()));
@@ -170,7 +192,8 @@ public class GROUPED_OVERTIME_Scheduler implements Scheduler {
 						
 						SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
 						
-						System.out.println("Backfilling job of user: "+job.get(Job.USER_ID));
+						if(debugGroup)
+							System.out.println("Backfilling job of user: "+job.get(Job.USER_ID)+" - Job "+job);
 						
 						schedule.addToSchedule(job, t_now);
 						
@@ -199,14 +222,21 @@ public class GROUPED_OVERTIME_Scheduler implements Scheduler {
 	}
 	
 	private boolean isFinishedBeforeReservation(Job job, long t_now) {
-		return job.getRunDuration() + t_now < reservation_begin;
+		return job.get(Job.TIME_REQUESTED) + t_now < reservation_begin;
 	}
 
 	@Override
 	public void enqueueJob(Job job) {
 		if(job.get(Job.USER_ID) == Job.NOT_SET)
 			throw new IllegalStateException("Job "+job.getJobId()+" has no User set!");
+		
 		t_last_sort = Long.MIN_VALUE;
+		
+		if(reservation_jobGroup != null && reservation_jobGroup.canPutJob(job)) {
+			reservation_jobGroup.putJob(job);
+			jobToGroupMap.put(job, reservation_jobGroup);
+			return;
+		}
 		for (UserJobGroup ujg : groupQueue) {
 			if(ujg.canPutJob(job)) {
 				ujg.putJob(job);
@@ -214,7 +244,8 @@ public class GROUPED_OVERTIME_Scheduler implements Scheduler {
 				return;
 			}
 		}
-		UserJobGroup ujg = new UserJobGroup(job.get(Job.USER_ID));
+		
+		UserJobGroup ujg = new UserJobGroup(job.get(Job.USER_ID), t_threshold);
 		ujg.putJob(job);
 		jobToGroupMap.put(job, ujg);
 		groupQueue.add(ujg);

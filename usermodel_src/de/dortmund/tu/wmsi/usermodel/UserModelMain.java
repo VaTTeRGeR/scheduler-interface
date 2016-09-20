@@ -11,9 +11,9 @@ public class UserModelMain {
 
 	public static void main(String[] args) {
 		runsim(1.7, 29.51 * 60.0);
-		runsim(1.7, 0.0);
-		runsim(1.14, -166.19 * 60.0);
-		runsim(1.14, 0.0);
+		//runsim(1.7, 0.0);
+		//runsim(1.14, -166.19 * 60.0);
+		//runsim(1.14, 0.0);
 	}
 	
 	private static void runsim(double c1, double c2) {
@@ -23,23 +23,19 @@ public class UserModelMain {
 		
 		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 10; i++) {
 			si.configure("usermodel_config/simulation_overtime_easy_grouped.properties");
 			si.simulate();
 		}
-
-		//REMOVE THIS//
-		if(true)
-			return;
 		
 		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 10; i++) {
 			si.configure("usermodel_config/simulation_easy_avg.properties");
 			si.simulate();
 		}
 		
-		AVGWTLogger.resetLog();
+		/*AVGWTLogger.resetLog();
 
 		for (int i = 0; i < 100; i++) {
 			si.configure("usermodel_config/simulation_overtime_easy_absolute.properties");
@@ -51,10 +47,10 @@ public class UserModelMain {
 		for (int i = 0; i < 100; i++) {
 			si.configure("usermodel_config/simulation_overtime_easy_relative.properties");
 			si.simulate();
-		}
+		}*/
 		
 		try {
-			new File("avg_output/").renameTo(new File("avg_output_"+c1+"_"+new DecimalFormat("#####.##").format(c2)+"/"));
+			new File("avg_output/").renameTo(new File("avg_output_"+c1+"_"+new DecimalFormat("#####.##").format(c2/60)+"/"));
 			new File("avg_output/").mkdir();
 		} catch (Exception e) {
 			e.printStackTrace();

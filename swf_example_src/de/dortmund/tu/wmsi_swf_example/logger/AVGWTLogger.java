@@ -67,7 +67,11 @@ public class AVGWTLogger implements Logger {
 							double tp = ((double)(throughput/t_simulated))/(double)max_resources;
 							DecimalFormatSymbols dfs = new DecimalFormatSymbols();
 							dfs.setDecimalSeparator('.');
-							log.add(String.format("%16s", avgWaitTime)+String.format("%16s", (globalWaitTime/globalJobCount))+String.format("%16s", new DecimalFormat("0.0000", dfs).format(tp))+String.format("%16s", t_last_submit)+String.format("%16s", t_last_finish));
+							log.add(String.format("%16s", avgWaitTime)+
+									String.format("%16s", (globalWaitTime/globalJobCount))+
+									String.format("%16s", new DecimalFormat("0.0000", dfs).format(tp))+
+									String.format("%16s", t_last_submit)+
+									String.format("%16s", t_last_finish));
 							
 							saveLog(swfPath);
 							

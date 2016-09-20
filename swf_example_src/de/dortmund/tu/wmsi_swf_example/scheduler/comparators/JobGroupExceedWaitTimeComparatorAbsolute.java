@@ -10,6 +10,22 @@ public class JobGroupExceedWaitTimeComparatorAbsolute implements Comparator<User
 
 	@Override
 	public int compare(UserJobGroup j0List, UserJobGroup j1List) {
+
+		Job j0 = j0List.jobs.peek();
+
+		long accWaitTime0 = j0.get(Job.TIME_REQUESTED)+StatisticalMathHelper.userAccepteableWaitTime(j0.get(Job.TIME_REQUESTED));
+		long deltaSum0 = accWaitTime0-j0.get(Job.WAIT_TIME);
+
+		Job j1 = j1List.jobs.peek();
+		
+		long accWaitTime1 = j1.get(Job.TIME_REQUESTED)+StatisticalMathHelper.userAccepteableWaitTime(j1.get(Job.TIME_REQUESTED));
+		long deltaSum1 = accWaitTime1-j1.get(Job.WAIT_TIME);
+
+		return (int)(deltaSum0-deltaSum1);
+	}
+	
+	/*@Override
+	public int compare(UserJobGroup j0List, UserJobGroup j1List) {
 		long i0 = 0;
 		long deltaSum0 = 0;
 
@@ -29,5 +45,5 @@ public class JobGroupExceedWaitTimeComparatorAbsolute implements Comparator<User
 		}
 
 		return (int)((deltaSum0/i0)-(deltaSum1/i1));
-	}
+	}*/
 }
