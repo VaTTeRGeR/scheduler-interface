@@ -13,6 +13,7 @@ import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
+import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobWaitTimeComparatorGini;
 
 public class GINI_EASY_LIMITED_SORT_Scheduler implements Scheduler {
 
@@ -41,6 +42,7 @@ public class GINI_EASY_LIMITED_SORT_Scheduler implements Scheduler {
 	
 	@Override
 	public void initialize() {
+		reservation_job = null;
 		reservation_begin = Long.MIN_VALUE;
 		if(res_max == -1)
 			throw new IllegalStateException("FCFS_Scheduler has no resource count configured");

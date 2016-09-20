@@ -1,9 +1,10 @@
-package de.dortmund.tu.wmsi_swf_example.scheduler;
+package de.dortmund.tu.wmsi_swf_example.scheduler.comparators;
 
 import java.util.Comparator;
 
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
+import de.dortmund.tu.wmsi_swf_example.scheduler.UserJobGroup;
 
 public class JobGroupExceedWaitTimeComparatorAbsolute implements Comparator<UserJobGroup> {
 

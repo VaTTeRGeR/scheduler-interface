@@ -12,6 +12,7 @@ import de.dortmund.tu.wmsi.scheduler.Schedule;
 import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
+import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobExceedWaitTimeComparatorAbsolute;
 
 public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 
@@ -32,6 +33,7 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 	public void initialize() {
 		t_last_execution = Long.MIN_VALUE;
 		reservation_begin = Long.MIN_VALUE;
+		reservation_job = null;
 		if(res_max == -1)
 			throw new IllegalStateException("FCFS_Scheduler has no resource count configured");
 		else if(res_max < 0)

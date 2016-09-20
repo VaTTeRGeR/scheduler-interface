@@ -1,4 +1,4 @@
-package de.dortmund.tu.wmsi_swf_example.scheduler;
+package de.dortmund.tu.wmsi_swf_example.scheduler.comparators;
 
 import java.util.Comparator;
 import java.util.HashMap;

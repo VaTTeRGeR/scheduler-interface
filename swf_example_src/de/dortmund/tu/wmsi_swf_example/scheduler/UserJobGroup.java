@@ -6,8 +6,6 @@ import java.util.LinkedList;
 import de.dortmund.tu.wmsi.job.Job;
 
 public class UserJobGroup {
-	private static Comparator<Job> c = new JobExceedWaitTimeComparatorAbsolute();
-	
 	public long user = -1;
 	public LinkedList<Job> jobs = new LinkedList<Job>();
 	
@@ -27,7 +25,7 @@ public class UserJobGroup {
 		return jobs.removeFirst();
 	}
 	
-	public void sort(){
-		jobs.sort(c);
+	public void sort(Comparator<Job> comparator){
+		jobs.sort(comparator);
 	}
 }

@@ -12,6 +12,7 @@ import de.dortmund.tu.wmsi.scheduler.Schedule;
 import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
+import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobWaitTimeComparatorGini;
 
 public class GINI_Scheduler implements Scheduler {
 

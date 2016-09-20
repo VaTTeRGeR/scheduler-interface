@@ -3,6 +3,7 @@ package de.dortmund.tu.wmsi_swf_example.logger;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -64,8 +65,9 @@ public class AVGWTLogger implements Logger {
 							long t_simulated = si.getSimulationEndTime()-si.getSimulationBeginTime();
 							
 							double tp = ((double)(throughput/t_simulated))/(double)max_resources;
-							
-							log.add(String.format("%16s", avgWaitTime)+String.format("%16s", (globalWaitTime/globalJobCount))+String.format("%16s", new DecimalFormat("0.0000").format(tp))+String.format("%16s", t_last_submit)+String.format("%16s", t_last_finish));
+							DecimalFormatSymbols dfs = new DecimalFormatSymbols();
+							dfs.setDecimalSeparator('.');
+							log.add(String.format("%16s", avgWaitTime)+String.format("%16s", (globalWaitTime/globalJobCount))+String.format("%16s", new DecimalFormat("0.0000", dfs).format(tp))+String.format("%16s", t_last_submit)+String.format("%16s", t_last_finish));
 							
 							saveLog(swfPath);
 							
