@@ -91,9 +91,11 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 				reservation_job = queue.poll();
 				return t_now;
 			} else if (schedule.isFitToSchedule(reservation_job)) {
+				reservation_job.set(Job.WAIT_TIME, t_now - reservation_job.get(Job.SUBMIT_TIME));
 				schedule.addToSchedule(reservation_job, t_now);
 				SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, reservation_job));
-				removeReservation();
+				reservation_begin = Long.MIN_VALUE;
+				reservation_job = null;
 				return t_now;
 			} else {
 				SimulationInterface.log("backfilling jobs from unsorted queue that end before: " + reservation_begin);
@@ -129,11 +131,6 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 	
 	private boolean isFinishedBeforeReservation(Job job, long t_now) {
 		return job.getRunDuration() + t_now < reservation_begin;
-	}
-	
-	private void removeReservation() {
-		reservation_begin = Long.MIN_VALUE;
-		reservation_job = null;
 	}
 
 	@Override

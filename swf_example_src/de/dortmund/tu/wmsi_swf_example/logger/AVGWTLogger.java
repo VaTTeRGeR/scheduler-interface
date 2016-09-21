@@ -15,13 +15,15 @@ import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.logger.Logger;
 import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
 import de.dortmund.tu.wmsi.routine.timing.RoutineTimingOnce;
+import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
 public class AVGWTLogger implements Logger {
 
-	private HashMap	<Long, Long>	userToWaitTime;
+	private HashMap	<Long, Long>	userToWaitTime_real;
 	private HashMap	<Long, Long>	userToJobCount;
-	private long globalWaitTime = 0, globalJobCount = 0;
+	private HashMap	<Long, Long>	userToWaitTime_accwt;
+	private long globalWaitTime = 0, globalAccWaitTime = 0, globalJobCount = 0;
 	private long throughput = 0;
 	private long t_last_submit = Long.MIN_VALUE;
 	private long t_last_finish = Long.MIN_VALUE;
@@ -38,7 +40,9 @@ public class AVGWTLogger implements Logger {
 		
 		if(log.isEmpty()) {
 			builder.append("%"+String.format("%15s", "AVGWT_U"));
+			builder.append(String.format("%16s", "AVGACCWT_U"));
 			builder.append(String.format("%16s", "AVGWT_ALL"));
+			builder.append(String.format("%16s", "AVGACCWT_ALL"));
 			builder.append(String.format("%16s", "THROUGHPUT"));
 			builder.append(String.format("%16s", "LAST_SUBMIT"));
 			builder.append(String.format("%16s", "LAST_FINISH"));
@@ -55,11 +59,17 @@ public class AVGWTLogger implements Logger {
 						@Override
 						public void process(long time) {
 							long sumUserAverageWaitTimes = 0;
-							long userCount = userToWaitTime.size();
-							for(Long wt : userToWaitTime.keySet()) {
-								sumUserAverageWaitTimes += userToWaitTime.get(wt)/userToJobCount.get(wt);
+							long userCount = userToWaitTime_real.size();
+							for(Long wt : userToWaitTime_real.keySet()) {
+								sumUserAverageWaitTimes += userToWaitTime_real.get(wt)/userToJobCount.get(wt);
 							}
 							long avgWaitTime = sumUserAverageWaitTimes/userCount;
+
+							long sumUserAverageAccWaitTimes = 0;
+							for(Long wt : userToWaitTime_accwt.keySet()) {
+								sumUserAverageAccWaitTimes += userToWaitTime_accwt.get(wt)/userToJobCount.get(wt);
+							}
+							long avgAccWaitTime = sumUserAverageAccWaitTimes/userCount;
 							
 							SimulationInterface si = SimulationInterface.instance();
 							long t_simulated = si.getSimulationEndTime()-si.getSimulationBeginTime();
@@ -68,7 +78,9 @@ public class AVGWTLogger implements Logger {
 							DecimalFormatSymbols dfs = new DecimalFormatSymbols();
 							dfs.setDecimalSeparator('.');
 							log.add(String.format("%16s", avgWaitTime)+
+									String.format("%16s", avgAccWaitTime)+
 									String.format("%16s", (globalWaitTime/globalJobCount))+
+									String.format("%16s", (globalAccWaitTime/globalJobCount))+
 									String.format("%16s", new DecimalFormat("0.0000", dfs).format(tp))+
 									String.format("%16s", t_last_submit)+
 									String.format("%16s", t_last_finish));
@@ -96,16 +108,21 @@ public class AVGWTLogger implements Logger {
 		Job job = event.getJob();
 		
 		long user = job.get(Job.USER_ID);
-		long wt = userToWaitTime.getOrDefault(user, 0L);
+
+		long wt = userToWaitTime_real.getOrDefault(user, 0L);
+		long accwt = userToWaitTime_accwt.getOrDefault(user, 0L);
 		long jc = userToJobCount.getOrDefault(user, 0L);
 		
 		wt += job.get(Job.WAIT_TIME);
+		accwt += Math.max(0, job.get(Job.WAIT_TIME) - StatisticalMathHelper.userAccepteableWaitTime(job.get(Job.TIME_REQUESTED)));
 		jc++;
 		
-		userToWaitTime.put(user, wt);
+		userToWaitTime_real.put(user, wt);
+		userToWaitTime_accwt.put(user, accwt);
 		userToJobCount.put(user, jc);
 		
 		globalWaitTime += job.get(Job.WAIT_TIME);
+		globalAccWaitTime += Math.max(0, job.get(Job.WAIT_TIME) - StatisticalMathHelper.userAccepteableWaitTime(job.get(Job.TIME_REQUESTED)));
 		globalJobCount++;
 		
 		throughput += job.get(Job.RUN_TIME)*job.get(Job.RESOURCES_REQUESTED);
@@ -144,12 +161,14 @@ public class AVGWTLogger implements Logger {
 	
 	public void clear() {
 		globalWaitTime = 0;
+		globalAccWaitTime = 0;
 		globalJobCount = 0;
 		throughput = 0;
 		t_last_submit = Long.MIN_VALUE;
 		t_last_finish = Long.MIN_VALUE;
-		userToWaitTime = new HashMap<Long, Long>();
+		userToWaitTime_real = new HashMap<Long, Long>();
 		userToJobCount = new HashMap<Long, Long>();
+		userToWaitTime_accwt = new HashMap<Long, Long>();
 	}
 
 	@Override

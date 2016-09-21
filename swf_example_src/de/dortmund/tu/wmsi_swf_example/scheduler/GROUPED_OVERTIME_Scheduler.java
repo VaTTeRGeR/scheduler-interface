@@ -169,6 +169,8 @@ public class GROUPED_OVERTIME_Scheduler implements Scheduler {
 				if(debugGroup)
 					System.out.println("Scheduling reserved job of user: "+reservation_job.get(Job.USER_ID)+" - Job "+reservation_job);
 				
+				reservation_job.set(Job.WAIT_TIME, t_now - reservation_job.get(Job.SUBMIT_TIME));
+				
 				schedule.addToSchedule(reservation_job, t_now);
 
 				reservation_begin = Long.MIN_VALUE;
