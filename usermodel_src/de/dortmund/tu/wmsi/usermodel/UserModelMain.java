@@ -30,15 +30,15 @@ public class UserModelMain {
 		
 		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 1; i++) {
-			si.configure("usermodel_config/simulation_easy_avg.properties");
+		for (int i = 0; i < 20; i++) {
+			si.configure("usermodel_config/simulation_waittime_grouped.properties");
 			si.simulate();
 		}
-		
+
 		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 1; i++) {
-			si.configure("usermodel_config/simulation_waittime_grouped.properties");
+		for (int i = 0; i < 20; i++) {
+			si.configure("usermodel_config/simulation_easy_avg.properties");
 			si.simulate();
 		}
 
