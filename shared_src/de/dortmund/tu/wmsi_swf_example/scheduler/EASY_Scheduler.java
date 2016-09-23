@@ -57,6 +57,7 @@ public class EASY_Scheduler implements Scheduler {
 		
 		if(!queue.isEmpty()) {
 			if (schedule.isFitToSchedule(queue.peek())) {
+				reservedCount++;
 				SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, queue.peek()));
 				schedule.addToSchedule(queue.poll(), t_now);
 				reservation_begin = Long.MIN_VALUE;
@@ -71,6 +72,9 @@ public class EASY_Scheduler implements Scheduler {
 						queue.remove(job);
 						schedule.addToSchedule(job, t_now);
 						SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
+						
+						backfillCount++;
+						
 						return t_now;
 					}
 				}
@@ -94,6 +98,19 @@ public class EASY_Scheduler implements Scheduler {
 
 		// nothing happenend
 		return t_target;
+	}
+	
+	private static long backfillCount = 0;
+	private static long reservedCount = 0;
+	
+	public static void clearStats(){
+		reservedCount = 0;
+		backfillCount = 0;
+	}
+	
+	public static void printStats(){
+		System.out.println("(EASY scheduler) Backfill: "+((double)backfillCount)/(double)(reservedCount+backfillCount));
+		System.out.println();
 	}
 	
 	@Override

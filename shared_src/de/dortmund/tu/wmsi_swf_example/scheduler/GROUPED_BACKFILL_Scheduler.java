@@ -15,16 +15,19 @@ import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobGroupMaxWaitTimeComparator;
+import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobUtilizationComparator;
 
-public class GROUPED_WAITTIME_Scheduler implements Scheduler {
+public class GROUPED_BACKFILL_Scheduler implements Scheduler {
 
 	private LinkedList<Job> queue; //Stores the sorted jobs
+	private LinkedList<Job> backfillQueue; //Stores the jobs that could be backfilled
 	private LinkedList<UserJobGroup> groupQueue; //stores the groups except the primary group
 	private HashMap<Job, UserJobGroup> jobToGroupMap; //allows for removing jobs from groups
 
 	private Schedule schedule; //the current schedule
 	
-	private Comparator<UserJobGroup> comparatorJobGroup; //
+	private Comparator<UserJobGroup> comparatorJobGroup;
+	private Comparator<Job> comparatorBackfill;
 
 	private long reservation_begin = Long.MIN_VALUE;
 	private Job reservation_job = null;
@@ -46,12 +49,14 @@ public class GROUPED_WAITTIME_Scheduler implements Scheduler {
 			throw new IllegalStateException("FCFS_Scheduler has a negative resource count configured");
 		
 		queue = new LinkedList<Job>();
+		backfillQueue = new LinkedList<Job>();
 		groupQueue = new LinkedList<UserJobGroup>();
 		jobToGroupMap = new HashMap<Job, UserJobGroup>();
 		
 		schedule = new Schedule(res_max);
 		
 		comparatorJobGroup = new JobGroupMaxWaitTimeComparator();
+		comparatorBackfill = new JobUtilizationComparator();
 		
 		reservation_begin = Long.MIN_VALUE;
 		reservation_job = null;
@@ -74,7 +79,7 @@ public class GROUPED_WAITTIME_Scheduler implements Scheduler {
 		t_threshold = 20*60; // 30 min max interarrival time
 	}
 	
-	public GROUPED_WAITTIME_Scheduler setMaxResources(long res_max) {
+	public GROUPED_BACKFILL_Scheduler setMaxResources(long res_max) {
 		this.res_max = res_max;
 		schedule = new Schedule(res_max);
 		return this;
@@ -166,6 +171,8 @@ public class GROUPED_WAITTIME_Scheduler implements Scheduler {
 			} else if (reservation_job != null && schedule.isFitToSchedule(reservation_job)) { // primary job gets scheduled
 				SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, reservation_job));
 				
+				reservedCount++;
+				
 				if(debugGroup)
 					System.out.println("Scheduling reserved job of user: "+reservation_job.get(Job.USER_ID)+" - Job "+reservation_job);
 				
@@ -181,26 +188,38 @@ public class GROUPED_WAITTIME_Scheduler implements Scheduler {
 				SimulationInterface.log("backfilling jobs from queue that end before: " + reservation_begin);
 				for (Job job : queue) {
 					if (schedule.isFitToSchedule(job) && isFinishedBeforeReservation(job, t_now)) {
-						SimulationInterface.log("backfilled job: " + job.getJobId() + " running from " + t_now + " to " + (t_now + job.getRunDuration()));
-						
-						queue.remove(job);
-
-						UserJobGroup ujg = jobToGroupMap.get(job);
-						ujg.jobs.remove(job);
-						if(ujg.jobs.isEmpty()) {
-							groupQueue.remove(ujg);
-						}
-						jobToGroupMap.remove(job);
-						
-						SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
-						
-						if(debugGroup)
-							System.out.println("Backfilling job of user: "+job.get(Job.USER_ID)+" - Job "+job);
-						
-						schedule.addToSchedule(job, t_now);
-						
-						return t_now;
+						backfillQueue.add(job);
 					}
+				}
+				
+				backfillQueue.sort(comparatorBackfill);
+				
+				if (!backfillQueue.isEmpty()) {
+					Job job = backfillQueue.peek();
+					backfillQueue.clear();
+					
+					SimulationInterface.log("backfilled job: " + job.getJobId() + " running from " + t_now + " to "
+							+ (t_now + job.getRunDuration()));
+
+					backfillCount++;
+
+					queue.remove(job);
+
+					UserJobGroup ujg = jobToGroupMap.get(job);
+					ujg.jobs.remove(job);
+					if (ujg.jobs.isEmpty()) {
+						groupQueue.remove(ujg);
+					}
+					jobToGroupMap.remove(job);
+
+					SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
+
+					if (debugGroup)
+						System.out.println("Backfilling job of user: " + job.get(Job.USER_ID) + " - Job " + job);
+
+					schedule.addToSchedule(job, t_now);
+
+					return t_now;
 				}
 			}
 		}
@@ -226,7 +245,20 @@ public class GROUPED_WAITTIME_Scheduler implements Scheduler {
 	private boolean isFinishedBeforeReservation(Job job, long t_now) {
 		return job.get(Job.TIME_REQUESTED) + t_now < reservation_begin;
 	}
-
+	
+	private static long backfillCount = 0;
+	private static long reservedCount = 0;
+	
+	public static void clearStats(){
+		reservedCount = 0;
+		backfillCount = 0;
+	}
+	
+	public static void printStats(){
+		System.out.println("(grouped backfill scheduler) Backfill: "+((double)backfillCount)/(double)(reservedCount+backfillCount));
+		System.out.println();
+	}
+	
 	@Override
 	public void enqueueJob(Job job) {
 		if(job.get(Job.USER_ID) == Job.NOT_SET)

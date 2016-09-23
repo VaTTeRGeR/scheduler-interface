@@ -46,6 +46,7 @@ public class AVGWTLogger implements Logger {
 			builder.append(String.format("%16s", "THROUGHPUT"));
 			builder.append(String.format("%16s", "LAST_SUBMIT"));
 			builder.append(String.format("%16s", "LAST_FINISH"));
+			builder.append(String.format("%16s", "PERCENT_BACKFILL"));
 			log.add(builder.toString());
 		}
 

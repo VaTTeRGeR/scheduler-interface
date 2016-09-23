@@ -77,7 +77,7 @@ public class JobCreator {
 	 * @param runtimeMuhatString
 	 */
 	private void initializeMuhat(String runtimeMuhatString) {
-		System.out.println("User: " + user.getUserId());
+		//System.out.println("User: " + user.getUserId());
 		
 		List<String> singleMuhat = Arrays
 				.asList(runtimeMuhatString.split(","));
