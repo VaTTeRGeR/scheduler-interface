@@ -2,6 +2,7 @@ package de.dortmund.tu.wmsi_swf_example.scheduler;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
@@ -13,9 +14,10 @@ import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobExceedWaitTimeComparatorAbsolute;
+import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobWaittimeComparator;
 import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobAccWTComparator;
 
-public class ABSOLUTE_OVERTIME_MEGA_BACKFILL_Scheduler implements Scheduler {
+public class ABSOLUTE_OVERTIME_SPREAD_SCALING_Scheduler implements Scheduler {
 
 	private LinkedList<Job> queue;
 	private LinkedList<Job> backfillQueue; //Stores the jobs that could be backfilled
@@ -61,7 +63,7 @@ public class ABSOLUTE_OVERTIME_MEGA_BACKFILL_Scheduler implements Scheduler {
 		setMaxResources(properties.getLong("resources", Long.MAX_VALUE));
 	}
 	
-	public ABSOLUTE_OVERTIME_MEGA_BACKFILL_Scheduler setMaxResources(long res_max) {
+	public ABSOLUTE_OVERTIME_SPREAD_SCALING_Scheduler setMaxResources(long res_max) {
 		this.res_max = res_max;
 		schedule = new Schedule(res_max);
 		return this;
@@ -79,7 +81,33 @@ public class ABSOLUTE_OVERTIME_MEGA_BACKFILL_Scheduler implements Scheduler {
 		
 		if(t_now > t_last_execution) {
 			t_last_execution = t_now;
+			
 			Collections.sort(queue, comparator);
+			
+			HashMap<Long, LinkedList<Integer>> indexListMap = new HashMap<Long, LinkedList<Integer>>();
+
+			int i = 0;
+			for(Job job : queue) {
+				long userId = job.get(Job.USER_ID);
+				LinkedList<Integer> indexList = indexListMap.getOrDefault(userId, new LinkedList<Integer>());
+				indexList.add(i);
+				indexListMap.put(userId, indexList);
+				
+				i++;
+			}
+			
+			HashMap<Long, Integer> medianIndexMap = new HashMap<Long, Integer>(64);
+			
+			for(long userId : indexListMap.keySet()) {
+				LinkedList<Integer> indexList = indexListMap.getOrDefault(userId, new LinkedList<Integer>());
+				medianIndexMap.put(userId, indexList.get(indexList.size()/2));
+			}
+			Collections.sort(queue, new Comparator<Job>() {
+				@Override
+				public int compare(Job o1, Job o2) {
+					return medianIndexMap.get(o1.get(Job.USER_ID)) - medianIndexMap.get(o2.get(Job.USER_ID));
+				}
+			});
 		}
 		
 		/*for (Job job : queue) {

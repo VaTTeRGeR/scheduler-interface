@@ -5,7 +5,7 @@ import java.util.Comparator;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 
-public class JobUtilizationComparator implements Comparator<Job> {
+public class JobAccWTComparator implements Comparator<Job> {
 
 	@Override
 	public int compare(Job j0, Job j1) {

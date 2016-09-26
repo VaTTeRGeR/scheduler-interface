@@ -24,7 +24,7 @@ public class UserModelMain {
 		AVGWTLogger.resetLog();
 
 		for (int i = 0; i < 100; i++) {
-			si.configure("usermodel_config/simulation_overtime_easy_absolute_mb.properties");
+			si.configure("usermodel_config/simulation_absolute_overtime_spread_scaling.properties");
 			si.simulate();
 		}
 		

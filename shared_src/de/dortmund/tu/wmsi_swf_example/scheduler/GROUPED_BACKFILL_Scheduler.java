@@ -15,7 +15,7 @@ import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobGroupMaxWaitTimeComparator;
-import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobUtilizationComparator;
+import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobAccWTComparator;
 
 public class GROUPED_BACKFILL_Scheduler implements Scheduler {
 
@@ -56,7 +56,7 @@ public class GROUPED_BACKFILL_Scheduler implements Scheduler {
 		schedule = new Schedule(res_max);
 		
 		comparatorJobGroup = new JobGroupMaxWaitTimeComparator();
-		comparatorBackfill = new JobUtilizationComparator();
+		comparatorBackfill = new JobAccWTComparator();
 		
 		reservation_begin = Long.MIN_VALUE;
 		reservation_job = null;
