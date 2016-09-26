@@ -96,11 +96,11 @@ public class ABSOLUTE_OVERTIME_SPREAD_SCALING_Scheduler implements Scheduler {
 				i++;
 			}
 			
-			HashMap<Long, Integer> medianIndexMap = new HashMap<Long, Integer>(64);
+			final HashMap<Long, Integer> medianIndexMap = new HashMap<Long, Integer>(64);
 			
 			for(long userId : indexListMap.keySet()) {
 				LinkedList<Integer> indexList = indexListMap.getOrDefault(userId, new LinkedList<Integer>());
-				medianIndexMap.put(userId, indexList.get(indexList.size()/2));
+				medianIndexMap.put(userId, indexList.get((int)Math.ceil((((double)indexList.size())-1d)/2d)));
 			}
 			Collections.sort(queue, new Comparator<Job>() {
 				@Override
