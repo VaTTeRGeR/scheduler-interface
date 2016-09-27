@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -23,12 +24,15 @@ public class AVGWTLogger implements Logger {
 	private HashMap	<Long, Long>	userToWaitTime_real;
 	private HashMap	<Long, Long>	userToJobCount;
 	private HashMap	<Long, Long>	userToWaitTime_accwt;
+	private	ArrayList<Long>			userids;
+
 	private long globalWaitTime = 0, globalAccWaitTime = 0, globalJobCount = 0;
 	private long throughput = 0;
 	private long t_last_submit = Long.MIN_VALUE;
 	private long t_last_finish = Long.MIN_VALUE;
 	private long max_resources = 0;
-	private static Queue	<String> log = new LinkedList<String>();
+	
+	private static LinkedList<String> log = new LinkedList<String>();
 
 	private PropertiesHandler properties = null;
 	
@@ -39,14 +43,16 @@ public class AVGWTLogger implements Logger {
 		StringBuilder builder = new StringBuilder();
 		
 		if(log.isEmpty()) {
-			builder.append("%"+String.format("%15s", "AVGWT_U"));
-			builder.append(String.format("%16s", "AVGACCWT_U"));
-			builder.append(String.format("%16s", "AVGWT_ALL"));
-			builder.append(String.format("%16s", "AVGACCWT_ALL"));
-			builder.append(String.format("%16s", "THROUGHPUT"));
-			builder.append(String.format("%16s", "LAST_SUBMIT"));
-			builder.append(String.format("%16s", "LAST_FINISH"));
-			builder.append(String.format("%16s", "PERCENT_BACKFILL"));
+			builder.append("%"+String.format("%19s", "AVGWT_U"));
+			builder.append(String.format("%20s", "AVGACCWT_U"));
+			builder.append(String.format("%20s", "AVGWT_ALL"));
+			builder.append(String.format("%20s", "AVGACCWT_ALL"));
+			builder.append(String.format("%20s", "THROUGHPUT"));
+			builder.append(String.format("%20s", "LAST_SUBMIT"));
+			builder.append(String.format("%20s", "LAST_FINISH"));
+			builder.append(String.format("%20s", "JOBCOUNT"));
+			builder.append(String.format("%20s", "ACTIVEUSERS"));
+			builder.append(String.format("%20s", "JOBS/USER"));
 			log.add(builder.toString());
 		}
 
@@ -64,13 +70,22 @@ public class AVGWTLogger implements Logger {
 							for(Long wt : userToWaitTime_real.keySet()) {
 								sumUserAverageWaitTimes += userToWaitTime_real.get(wt)/userToJobCount.get(wt);
 							}
-							long avgWaitTime = sumUserAverageWaitTimes/userCount;
 
+							long avgWaitTime;
+							if(userCount>0)
+								avgWaitTime = sumUserAverageWaitTimes/userCount;
+							else
+								avgWaitTime = 0;
+							
 							long sumUserAverageAccWaitTimes = 0;
 							for(Long wt : userToWaitTime_accwt.keySet()) {
 								sumUserAverageAccWaitTimes += userToWaitTime_accwt.get(wt)/userToJobCount.get(wt);
 							}
-							long avgAccWaitTime = sumUserAverageAccWaitTimes/userCount;
+							long avgAccWaitTime;
+							if(userCount>0)
+								avgAccWaitTime = sumUserAverageAccWaitTimes/userCount;
+							else
+								avgAccWaitTime = 0;
 							
 							SimulationInterface si = SimulationInterface.instance();
 							long t_simulated = si.getSimulationEndTime()-si.getSimulationBeginTime();
@@ -78,13 +93,16 @@ public class AVGWTLogger implements Logger {
 							double tp = ((double)(throughput/t_simulated))/(double)max_resources;
 							DecimalFormatSymbols dfs = new DecimalFormatSymbols();
 							dfs.setDecimalSeparator('.');
-							log.add(String.format("%16s", avgWaitTime)+
-									String.format("%16s", avgAccWaitTime)+
-									String.format("%16s", (globalWaitTime/globalJobCount))+
-									String.format("%16s", (globalAccWaitTime/globalJobCount))+
-									String.format("%16s", new DecimalFormat("0.0000", dfs).format(tp))+
-									String.format("%16s", t_last_submit)+
-									String.format("%16s", t_last_finish));
+							log.add(String.format("%20s", avgWaitTime)+
+									String.format("%20s", avgAccWaitTime)+
+									String.format("%20s", (globalWaitTime/globalJobCount))+
+									String.format("%20s", (globalAccWaitTime/globalJobCount))+
+									String.format("%20s", new DecimalFormat("0.0000", dfs).format(tp))+
+									String.format("%20s", t_last_submit)+
+									String.format("%20s", t_last_finish)+
+									String.format("%20s", globalJobCount)+
+									String.format("%20s", userids.size())+
+									String.format("%20s", globalJobCount/userids.size()));
 							
 							saveLog(swfPath);
 							
@@ -109,6 +127,10 @@ public class AVGWTLogger implements Logger {
 		Job job = event.getJob();
 		
 		long user = job.get(Job.USER_ID);
+		
+		if(!userids.contains(user)){
+			userids.add(user);
+		}
 
 		long wt = userToWaitTime_real.getOrDefault(user, 0L);
 		long accwt = userToWaitTime_accwt.getOrDefault(user, 0L);
@@ -170,6 +192,7 @@ public class AVGWTLogger implements Logger {
 		userToWaitTime_real = new HashMap<Long, Long>();
 		userToJobCount = new HashMap<Long, Long>();
 		userToWaitTime_accwt = new HashMap<Long, Long>();
+		userids = new ArrayList<Long>(512);
 	}
 
 	@Override

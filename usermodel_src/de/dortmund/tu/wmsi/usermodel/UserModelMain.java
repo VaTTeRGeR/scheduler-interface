@@ -11,9 +11,9 @@ public class UserModelMain {
 
 	public static void main(String[] args) {
 		runsim(1.7, 29.51 * 60.0);
-		runsim(1.7, 0.0);
-		runsim(2.28, 215.75 * 60);
-		runsim(2.28, 0.0);
+		//runsim(1.7, 0.0);
+		//runsim(2.28, 215.75 * 60);
+		//runsim(2.28, 0.0);
 	}
 	
 	private static void runsim(double c1, double c2) {
@@ -21,34 +21,37 @@ public class UserModelMain {
 
 		SimulationInterface si = SimulationInterface.instance();
 		
+		/*AVGWTLogger.resetLog();
+
+		for (int i = 0; i < 1; i++) {
+			si.configure("usermodel_config/simulation_absolute_overtime_spread_scaling.properties");
+			si.simulate();
+		}*/
+		
 		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 100; i++) {
-			si.configure("usermodel_config/simulation_absolute_overtime_spread_scaling.properties");
+		for (int i = 0; i < 3; i++) {
+			si.configure("usermodel_config/simulation_overtime_easy_absolute.properties");
 			si.simulate();
 		}
 		
-		/*AVGWTLogger.resetLog();
+		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 10; i++) {
-			//GROUPED_BACKFILL_Scheduler.clearStats();
+		for (int i = 0; i < 3; i++) {
 			si.configure("usermodel_config/simulation_backfill_grouped.properties");
 			si.simulate();
-			//GROUPED_BACKFILL_Scheduler.printStats();
-		}*/
+		}
 
 		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 50; i++) {
-			//EASY_Scheduler.clearStats();
+		for (int i = 0; i < 3; i++) {
 			si.configure("usermodel_config/simulation_easy_avg.properties");
 			si.simulate();
-			//EASY_Scheduler.printStats();
 		}
 
 		/*AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 1; i++) {
 			si.configure("usermodel_config/simulation_overtime_easy_relative.properties");
 			si.simulate();
 		}*/

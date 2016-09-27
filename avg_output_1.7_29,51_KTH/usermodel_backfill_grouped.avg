@@ -1,0 +1,4 @@
+%            AVGWT_U          AVGACCWT_U           AVGWT_ALL        AVGACCWT_ALL          THROUGHPUT         LAST_SUBMIT         LAST_FINISH            JOBCOUNT         ACTIVEUSERS           JOBS/USER
+                2256                2041                2084                1878              0.4900            62876806            62894358               75129                  68                1104
+                2484                2251                2244                2031              0.5100            62887256            62897350               75139                  68                1104
+                2669                2433                2468                2260              0.5100            62890787            62897797               72074                  68                1059
