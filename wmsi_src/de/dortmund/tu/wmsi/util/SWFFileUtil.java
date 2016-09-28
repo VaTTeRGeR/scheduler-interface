@@ -21,7 +21,7 @@ public class SWFFileUtil {
 			while (reader.ready()) {
 				line = reader.readLine();
 				line = line.trim();
-				if(!line.contains(";") && !line.isEmpty())
+				if(!line.contains(";") && !line.contains("%") && !line.isEmpty())
 					lines.add(line);
 			}
 			reader.close();

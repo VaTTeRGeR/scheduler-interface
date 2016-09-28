@@ -27,8 +27,15 @@ public class UserModelMain {
 			si.configure("usermodel_config/simulation_absolute_overtime_spread_scaling.properties");
 			si.simulate();
 		}*/
-		
+
 		AVGWTLogger.resetLog();
+
+		for (int i = 0; i < 1; i++) {
+			si.configure("usermodel_config/simulation_batch_priority_avg.properties");
+			si.simulate();
+		}
+		
+		/*AVGWTLogger.resetLog();
 
 		for (int i = 0; i < 3; i++) {
 			si.configure("usermodel_config/simulation_overtime_easy_absolute.properties");
@@ -40,11 +47,11 @@ public class UserModelMain {
 		for (int i = 0; i < 3; i++) {
 			si.configure("usermodel_config/simulation_backfill_grouped.properties");
 			si.simulate();
-		}
+		}*/
 
 		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 1; i++) {
 			si.configure("usermodel_config/simulation_easy_avg.properties");
 			si.simulate();
 		}

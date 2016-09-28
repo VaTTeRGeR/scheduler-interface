@@ -4,7 +4,6 @@ import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.logger.GenericLogger;
 import de.dortmund.tu.wmsi.model.WorkloadModel;
-import de.dortmund.tu.wmsi_swf_example.logger.SWFLogger;
 import de.dortmund.tu.wmsi_swf_example.scheduler.EASY_Scheduler;
 
 public class TestEASY {
@@ -31,7 +30,9 @@ public class TestEASY {
 			}
 		});
 
-		simface.setScheduler(new EASY_Scheduler().setMaxResources(100));
+		EASY_Scheduler scheduler = new EASY_Scheduler();
+		scheduler.setMaxResources(100);
+		simface.setScheduler(scheduler);
 		
 		//SWFLogger logger = new SWFLogger();
 		//logger.configure("swfmodel_config/swf_logger.properties");

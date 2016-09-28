@@ -7,13 +7,12 @@ import java.util.Queue;
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.event.JobStartedEvent;
 import de.dortmund.tu.wmsi.job.Job;
-import de.dortmund.tu.wmsi.usermodel.util.UserModelTimeHelper;
 
 public class Session {
 	
 
 	//private JobCreator jobcreator;
-	private User user;
+	//private User user;
 	
 	private BatchCreator batchcreator;
 	private Behavior behavior;
@@ -28,7 +27,7 @@ public class Session {
 
 	public Session(User user) {
 		//this.jobcreator 	= user.getJobcreator();
-		this.user = user;
+		//this.user = user;
 		
 		this.behavior 		= user.getBehavior();
 		this.batchcreator 	= user.getBatchcreator();

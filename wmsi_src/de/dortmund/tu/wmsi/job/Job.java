@@ -93,4 +93,12 @@ public class Job {
 	public String toString() {
 		return String.valueOf(get(JOB_ID));
 	}
+
+	public String printAll() {
+		return	String.valueOf(get(JOB_ID))+" - "+
+				String.valueOf(get(SUBMIT_TIME))+" - "+
+				String.valueOf(get(WAIT_TIME))+" - "+
+				String.valueOf(get(RUN_TIME))+" - "+
+				String.valueOf(get(RESOURCES_REQUESTED));
+	}
 }

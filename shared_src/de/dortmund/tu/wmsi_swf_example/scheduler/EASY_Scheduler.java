@@ -14,14 +14,19 @@ import de.dortmund.tu.wmsi.util.PropertiesHandler;
 public class EASY_Scheduler implements Scheduler {
 
 	private LinkedList<Job> queue = new LinkedList<Job>();
+	
 	private Schedule schedule;
+	
 	private long res_max = -1;
-	private long reservation_begin = Long.MIN_VALUE;
+	private long reservation_begin;
+	private Job reservation_job;
 	
 	@Override
 	public void initialize() {
+		queue = new LinkedList<Job>();
 		schedule = new Schedule(res_max);
 		reservation_begin = Long.MIN_VALUE;
+		reservation_job = null;
 		if(res_max == -1)
 			throw new IllegalStateException("EASY_Scheduler has no resource count configured");
 		else if(res_max < 0)
@@ -40,41 +45,45 @@ public class EASY_Scheduler implements Scheduler {
 		setMaxResources(properties.getLong("resources", Long.MAX_VALUE));
 	}
 	
-	public EASY_Scheduler setMaxResources(long res_max) {
+	public void setMaxResources(long res_max) {
 		this.res_max = res_max;
-		return this;
 	}
 	
 	@Override
 	public long simulateUntil(long t_now, long t_target) {
-		SimulationInterface.log(schedule.getResourcesUsed()+"/"+res_max+" resources in use");
-		SimulationInterface.log("queue size: "+queue.size());
-		SimulationInterface.log("schedule size: "+schedule.getScheduleSize());
-		
 		for (Job job : queue) {
 			job.set(Job.WAIT_TIME, t_now - job.get(Job.SUBMIT_TIME));
 		}
+		if(reservation_job != null) {
+			reservation_job.set(Job.WAIT_TIME, t_now - reservation_job.get(Job.SUBMIT_TIME));
+		}
 		
-		if(!queue.isEmpty()) {
-			if (schedule.isFitToSchedule(queue.peek())) {
-				reservedCount++;
-				SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, queue.peek()));
-				schedule.addToSchedule(queue.poll(), t_now);
+		if(!queue.isEmpty() || reservation_job != null) {
+			if (reservation_job != null && schedule.isFitToSchedule(reservation_job)) {
+				schedule.addToSchedule(reservation_job, t_now);
+
+				SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, reservation_job));
+				
 				reservation_begin = Long.MIN_VALUE;
+				reservation_job = null;
+
 				return t_now;
-			} else if (reservation_begin == Long.MIN_VALUE) {
+				
+			} else if (reservation_job == null) {
 				reservation_begin = schedule.getNextFitTime(queue.peek(), t_now);
-			} else {
-				SimulationInterface.log("backfilling jobs that end before: " + reservation_begin);
+				reservation_job = queue.poll();
+				
+				return t_now;
+			
+			} else if(!queue.isEmpty()) {
 				for (Job job : queue) {
-					if (schedule.isFitToSchedule(job) && job.get(Job.TIME_REQUESTED) + t_now < reservation_begin && !job.equals(queue.peek())) {
-						SimulationInterface.log("backfilled job: " + job.getJobId() + " running from "+t_now+" to "+(t_now+job.getRunDuration()));
-						queue.remove(job);
+					if (schedule.isFitToSchedule(job) && job.get(Job.TIME_REQUESTED) + t_now < reservation_begin) {
 						schedule.addToSchedule(job, t_now);
+
 						SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
-						
-						backfillCount++;
-						
+
+						queue.remove(job);
+
 						return t_now;
 					}
 				}
@@ -83,34 +92,15 @@ public class EASY_Scheduler implements Scheduler {
 		
 		// a job is going to be finished before t_target is reached
 		if(!schedule.isEmpty() && schedule.peekNextFinishedJobEntry(t_target) != null) {
-			
 			JobFinishEntry entry = schedule.pollNextFinishedJobEntry(t_target);
 
 			SimulationInterface.instance().submitEvent(new JobFinishedEvent(entry.t_end, entry.job));
 			
-			SimulationInterface.log("finished job "+entry.job.getJobId()+" at "+entry.t_end);
-			SimulationInterface.log("freeing "+entry.job.getResourcesRequested()+" resources");
-			
 			return entry.t_end;
 		}
 		
-		SimulationInterface.log("scheduler idled");
-
 		// nothing happenend
 		return t_target;
-	}
-	
-	private static long backfillCount = 0;
-	private static long reservedCount = 0;
-	
-	public static void clearStats(){
-		reservedCount = 0;
-		backfillCount = 0;
-	}
-	
-	public static void printStats(){
-		System.out.println("(EASY scheduler) Backfill: "+((double)backfillCount)/(double)(reservedCount+backfillCount));
-		System.out.println();
 	}
 	
 	@Override

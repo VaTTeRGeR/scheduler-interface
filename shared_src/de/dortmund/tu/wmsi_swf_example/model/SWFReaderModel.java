@@ -15,7 +15,6 @@ public class SWFReaderModel implements WorkloadModel {
 	@Override
 	public void configure(String configPath) {
 		SimulationInterface.log("loading: "+configPath);
-		
 		properties = new PropertiesHandler(configPath);
 	}
 
@@ -37,10 +36,15 @@ public class SWFReaderModel implements WorkloadModel {
 		
 		for (int i = 0; i < lines.length; i++) {
 			String[] values = lines[i].split("\\s+");
-			if(Long.parseLong(values[Job.SUBMIT_TIME]) >= 0 && Long.parseLong(values[Job.RUN_TIME]) > 0 && Long.parseLong(values[Job.RESOURCES_ALLOCATED]) > 0) {
-				simface.submitJob(new Job(Long.valueOf((values[Job.JOB_ID])), Long.parseLong(values[Job.SUBMIT_TIME]), Long.parseLong(values[Job.RUN_TIME]), Long.parseLong(values[Job.RESOURCES_ALLOCATED])));
+			if(Long.parseLong(values[Job.SUBMIT_TIME]) != -1 && Long.parseLong(values[Job.RUN_TIME]) != -1 && Long.parseLong(values[Job.RESOURCES_ALLOCATED]) != -1 && Long.parseLong(values[Job.USER_ID]) != -1) {
+				Job job = new Job(Long.valueOf((values[Job.JOB_ID])), Long.parseLong(values[Job.SUBMIT_TIME]), Long.parseLong(values[Job.RUN_TIME]), Long.parseLong(values[Job.RESOURCES_ALLOCATED]));
+				job.set(Job.USER_ID, Long.valueOf((values[Job.USER_ID])));
+				simface.submitJob(job);
+			} else {
+				System.out.println("Job "+Long.valueOf((values[Job.JOB_ID]))+" was not loaded, invalid values");
 			}
 		}
+		
 		
 		SimulationInterface.log("jobs created");
 	}

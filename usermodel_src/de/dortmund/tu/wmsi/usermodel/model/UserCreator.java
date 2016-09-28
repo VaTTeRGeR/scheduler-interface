@@ -9,10 +9,10 @@ import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
 public class UserCreator {
 
-	private static long SECONDS_PER_MINUTE = 60;
-	private static long SECONDS_PER_HOUR = SECONDS_PER_MINUTE*60;
-	private static long SECONDS_PER_DAY = SECONDS_PER_HOUR * 24;
-	private static long SECONDS_PER_WEEK = SECONDS_PER_DAY * 7;
+	//private static long SECONDS_PER_MINUTE = 60;
+	//private static long SECONDS_PER_HOUR = SECONDS_PER_MINUTE*60;
+	//private static long SECONDS_PER_DAY = SECONDS_PER_HOUR * 24;
+	//private static long SECONDS_PER_WEEK = SECONDS_PER_DAY * 7;
 
 	public static List<User> createUserList(String configPath) {
 		List<User> users = new LinkedList<User>();
