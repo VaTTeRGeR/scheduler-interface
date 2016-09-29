@@ -138,14 +138,21 @@ public class BATCH_PRIORITY_Scheduler implements Scheduler {
 		
 		updatePriorities(SimulationInterface.instance().getCurrentTime());
 		
-		if(up.priority == 0) {
-			queue.add(job);
-		} else if(up.priority > 0 && isUserInQueue) {
+		if(up.priority > 0 && isUserInQueue) {
 			Job prevJob = queue.peek();
 			for (int i = 1; i < queue.size(); i++) {
 				Job otherJob = queue.get(i);
 				if(otherJob.get(Job.USER_ID) != userId && prevJob.get(Job.USER_ID) == userId) {
+
+					long prevJobPrio = idToUserMap.get(prevJob.get(Job.USER_ID)).priority;
+					System.out.println(getQueueString());
+					System.out.println("Added job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" to batch of prio "+prevJobPrio);
+					
 					queue.add(queue.indexOf(otherJob), job);
+
+					System.out.println(getQueueString());
+					System.out.println();
+					
 					return;
 				}
 				prevJob = otherJob;
@@ -153,13 +160,42 @@ public class BATCH_PRIORITY_Scheduler implements Scheduler {
 		} else if(up.priority > 0 && !isUserInQueue) {
 			for (Job otherJob : queue) {
 				long otherJobPrio = idToUserMap.get(otherJob.get(Job.USER_ID)).priority;
-				if(otherJobPrio > up.priority) {
+				if(otherJobPrio > up.priority || otherJobPrio == 0) {
+					System.out.println(getQueueString());
+					System.out.println("Inserted job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" before job with prio "+otherJobPrio);
+					
 					queue.add(queue.indexOf(otherJob), job);
+					
+					System.out.println(getQueueString());
+					System.out.println();
 					return;
 				}
 			}
 		}
+		System.out.println(getQueueString());
+		System.out.println("Added job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" at the end of the queue("+queue.size()+")");
+		
 		queue.add(job);
+		
+		System.out.println(getQueueString());
+		System.out.println();
+	}
+	
+	private String getQueueString() {
+		StringBuilder builder = new StringBuilder();
+		for (Job job : queue) {
+			long jobId = job.get(Job.JOB_ID);
+			long userId = job.get(Job.USER_ID);
+			int up = idToUserMap.get(userId).priority;
+			builder.append("(");
+			builder.append(jobId);
+			builder.append(",");
+			builder.append(userId);
+			builder.append(",");
+			builder.append(up);
+			builder.append(")");
+		}
+		return builder.toString();
 	}
 	
 	private boolean isUserInQueue(long userId) {
