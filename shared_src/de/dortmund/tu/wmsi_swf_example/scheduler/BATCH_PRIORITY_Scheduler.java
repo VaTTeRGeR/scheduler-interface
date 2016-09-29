@@ -14,8 +14,8 @@ import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
 public class BATCH_PRIORITY_Scheduler implements Scheduler {
 
-	private LinkedList<Job> queue = new LinkedList<Job>();
-	private HashMap<Long, UserPriority> idToUserMap = new HashMap<Long, UserPriority>();
+	private LinkedList<Job> queue;
+	private HashMap<Long, UserPriority> idToUserMap;
 	
 	private Schedule schedule;
 	
@@ -23,8 +23,6 @@ public class BATCH_PRIORITY_Scheduler implements Scheduler {
 
 	private long reservation_begin;
 	private Job reservation_job;
-	
-	private int priority_max;
 	
 	private long t_threshold;
 	
@@ -35,7 +33,6 @@ public class BATCH_PRIORITY_Scheduler implements Scheduler {
 		idToUserMap = new HashMap<Long, UserPriority>();
 		reservation_begin = Long.MIN_VALUE;
 		reservation_job = null;
-		priority_max = 0;
 		t_threshold = 20 * 60;
 		if(res_max == -1)
 			throw new IllegalStateException("BATCH_PRIORITY_Scheduler has no resource count configured");
@@ -115,16 +112,15 @@ public class BATCH_PRIORITY_Scheduler implements Scheduler {
 	
 	private void updatePriorities(long t_now) {
 		for (UserPriority up : idToUserMap.values()) {
-			if(up.t_last_submit + t_threshold < t_now ) {
+			if(up.t_last_submit + t_threshold < t_now && up.priority > 0) {
 				for (UserPriority upOther : idToUserMap.values()) {
 					if(upOther.priority > up.priority) {
 						upOther.priority--;
 					}
 				}
-				priority_max --;
 				up.priority = 0;
-			} else if(up.priority == 0 && up.t_last_submit + t_threshold > t_now) {
-				up.priority = ++priority_max;
+			} else if(up.priority == 0 && up.t_last_submit + t_threshold >= t_now) {
+				up.priority = getMaxPriority() + 1;
 			}
 		}
 	}
@@ -132,49 +128,38 @@ public class BATCH_PRIORITY_Scheduler implements Scheduler {
 	@Override
 	public void enqueueJob(Job job) {
 		final long userId = job.get(Job.USER_ID);
-		final UserPriority up = idToUserMap.get(userId);
-		final boolean userInQueue = isUserInQueue(userId);
+		final boolean isUserInQueue = isUserInQueue(userId);
+
+		UserPriority up = idToUserMap.get(userId);
+		if(up == null) {
+			idToUserMap.put(userId, up = new UserPriority());
+		}
+		up.t_last_submit = job.get(Job.SUBMIT_TIME);
 		
 		updatePriorities(SimulationInterface.instance().getCurrentTime());
-
-		if(up != null) {
-			up.t_last_submit = job.get(Job.SUBMIT_TIME);
-		} else {
-			idToUserMap.put(userId, new UserPriority());
-		}
-		
 		
 		if(up.priority == 0) {
-			queue.add(job);}
-		else if(up.priority > 0 && userInQueue) {
-			Job prevJob = queue.peek();
-			for (Job newJob : queue) {
-				if(newJob.get(Job.USER_ID) != userId && prevJob.get(Job.USER_ID) == userId) {
-					queue.add(queue.indexOf(newJob), job);
-					break;
-				}
-				prevJob = newJob;
-			}
 			queue.add(job);
-		} else if(up.priority > 0 && !userInQueue) {
+		} else if(up.priority > 0 && isUserInQueue) {
 			Job prevJob = queue.peek();
-			for (Job newJob : queue) {
-				long jobItUserId = newJob.get(Job.USER_ID);
-				
-				long userJobPrio = up.priority;
-				long newJobPrio = idToUserMap.get(jobItUserId).priority;
-				long prevJobPrio = idToUserMap.get(jobItUserId).priority;
-				
-				if(newJobPrio > userJobPrio && (prevJobPrio < userJobPrio || prevJob == newJob)) {
-					queue.add(queue.indexOf(newJob), job);
-					break;
+			for (int i = 1; i < queue.size(); i++) {
+				Job otherJob = queue.get(i);
+				if(otherJob.get(Job.USER_ID) != userId && prevJob.get(Job.USER_ID) == userId) {
+					queue.add(queue.indexOf(otherJob), job);
+					return;
 				}
-				prevJob = newJob;
+				prevJob = otherJob;
 			}
-			queue.add(job);
-		} else {
-			throw new IllegalStateException("What is this?! Where are you going?!");
+		} else if(up.priority > 0 && !isUserInQueue) {
+			for (Job otherJob : queue) {
+				long otherJobPrio = idToUserMap.get(otherJob.get(Job.USER_ID)).priority;
+				if(otherJobPrio > up.priority) {
+					queue.add(queue.indexOf(otherJob), job);
+					return;
+				}
+			}
 		}
+		queue.add(job);
 	}
 	
 	private boolean isUserInQueue(long userId) {
@@ -183,6 +168,15 @@ public class BATCH_PRIORITY_Scheduler implements Scheduler {
 				return true;
 		}
 		return false;
+	}
+	
+	private int getMaxPriority() {
+		int max = 0;
+		for (UserPriority up : idToUserMap.values()) {
+			if(up.priority > max)
+				max = up.priority;
+		}
+		return max;
 	}
 	
 	private class UserPriority {

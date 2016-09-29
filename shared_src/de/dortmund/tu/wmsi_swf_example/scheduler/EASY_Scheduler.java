@@ -13,7 +13,7 @@ import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
 public class EASY_Scheduler implements Scheduler {
 
-	private LinkedList<Job> queue = new LinkedList<Job>();
+	private LinkedList<Job> queue;
 	
 	private Schedule schedule;
 	
