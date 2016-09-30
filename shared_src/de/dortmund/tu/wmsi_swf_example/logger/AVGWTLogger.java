@@ -24,6 +24,7 @@ public class AVGWTLogger implements Logger {
 	private HashMap	<Long, Long>	userToJobCount;
 	private HashMap	<Long, Long>	userToWaitTime_accwt;
 	private	ArrayList<Long>			userids;
+	private	ArrayList<Long>			waitTimes;
 
 	private long globalWaitTime = 0, globalAccWaitTime = 0, globalJobCount = 0;
 	private long throughput = 0;
@@ -44,14 +45,27 @@ public class AVGWTLogger implements Logger {
 		if(log.isEmpty()) {
 			builder.append("%"+String.format("%19s", "AVGWT_U"));
 			builder.append(String.format("%20s", "AVGACCWT_U"));
+			
 			builder.append(String.format("%20s", "AVGWT_ALL"));
 			builder.append(String.format("%20s", "AVGACCWT_ALL"));
+			
 			builder.append(String.format("%20s", "THROUGHPUT"));
+			
 			builder.append(String.format("%20s", "LAST_SUBMIT"));
 			builder.append(String.format("%20s", "LAST_FINISH"));
+			
 			builder.append(String.format("%20s", "JOBCOUNT"));
+			
 			builder.append(String.format("%20s", "ACTIVEUSERS"));
+			
 			builder.append(String.format("%20s", "JOBS/USER"));
+			
+			builder.append(String.format("%20s", "AWTA_LW"));
+			builder.append(String.format("%20s", "AWTA_LQ"));
+			builder.append(String.format("%20s", "AWTA_M"));
+			builder.append(String.format("%20s", "AWTA_UQ"));
+			builder.append(String.format("%20s", "AWTA_UW"));
+			
 			log.add(builder.toString());
 		}
 
@@ -89,6 +103,12 @@ public class AVGWTLogger implements Logger {
 							SimulationInterface si = SimulationInterface.instance();
 							long t_simulated = si.getSimulationEndTime()-si.getSimulationBeginTime();
 							
+							long [] waitTimesPrimitive = new long[waitTimes.size()];
+							for (int i = 0; i < waitTimes.size(); i++) {
+								waitTimesPrimitive[i] = waitTimes.get(i);
+							}
+							long[] boxPlotValues = StatisticalMathHelper.getBoxPlotValues(waitTimesPrimitive);
+							
 							double tp = ((double)(throughput/t_simulated))/(double)max_resources;
 							DecimalFormatSymbols dfs = new DecimalFormatSymbols();
 							dfs.setDecimalSeparator('.');
@@ -101,7 +121,12 @@ public class AVGWTLogger implements Logger {
 									String.format("%20s", t_last_finish)+
 									String.format("%20s", globalJobCount)+
 									String.format("%20s", userids.size())+
-									String.format("%20s", globalJobCount/userids.size()));
+									String.format("%20s", globalJobCount/userids.size())+
+									String.format("%20s", boxPlotValues[0])+
+									String.format("%20s", boxPlotValues[1])+
+									String.format("%20s", boxPlotValues[2])+
+									String.format("%20s", boxPlotValues[3])+
+									String.format("%20s", boxPlotValues[4]));
 							
 							saveLog(swfPath);
 							
@@ -146,6 +171,8 @@ public class AVGWTLogger implements Logger {
 		globalWaitTime += job.get(Job.WAIT_TIME);
 		globalAccWaitTime += Math.max(0, job.get(Job.WAIT_TIME) - StatisticalMathHelper.userAccepteableWaitTime(job.get(Job.TIME_REQUESTED)));
 		globalJobCount++;
+		
+		waitTimes.add(job.get(Job.WAIT_TIME));
 		
 		throughput += job.get(Job.RUN_TIME)*job.get(Job.RESOURCES_REQUESTED);
 		
@@ -192,6 +219,7 @@ public class AVGWTLogger implements Logger {
 		userToJobCount = new HashMap<Long, Long>();
 		userToWaitTime_accwt = new HashMap<Long, Long>();
 		userids = new ArrayList<Long>(512);
+		waitTimes = new ArrayList<Long>(512000);
 	}
 
 	@Override

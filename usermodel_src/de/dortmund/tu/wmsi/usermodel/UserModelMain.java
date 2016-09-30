@@ -30,7 +30,7 @@ public class UserModelMain {
 
 		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 10; i++) {
 			si.configure("usermodel_config/simulation_batch_priority_avg.properties");
 			si.simulate();
 		}
@@ -51,7 +51,7 @@ public class UserModelMain {
 
 		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 10; i++) {
 			si.configure("usermodel_config/simulation_easy_avg.properties");
 			si.simulate();
 		}

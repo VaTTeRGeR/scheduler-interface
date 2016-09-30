@@ -12,7 +12,7 @@ import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
-public class BATCH_PRIORITY_Scheduler implements Scheduler {
+public class BATCH_PRIORITY2_Scheduler implements Scheduler {
 
 	private LinkedList<Job> queue;
 	private HashMap<Long, UserPriority> idToUserMap;
@@ -145,13 +145,13 @@ public class BATCH_PRIORITY_Scheduler implements Scheduler {
 				if(otherJob.get(Job.USER_ID) != userId && prevJob.get(Job.USER_ID) == userId) {
 
 					long prevJobPrio = idToUserMap.get(prevJob.get(Job.USER_ID)).priority;
-					//System.out.println(getQueueString());
-					//System.out.println("Added job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" to batch of prio "+prevJobPrio);
+					System.out.println(getQueueString());
+					System.out.println("Added job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" to batch of prio "+prevJobPrio);
 					
 					queue.add(queue.indexOf(otherJob), job);
 
-					//System.out.println(getQueueString());
-					//System.out.println();
+					System.out.println(getQueueString());
+					System.out.println();
 					
 					return;
 				}
@@ -161,24 +161,24 @@ public class BATCH_PRIORITY_Scheduler implements Scheduler {
 			for (Job otherJob : queue) {
 				long otherJobPrio = idToUserMap.get(otherJob.get(Job.USER_ID)).priority;
 				if(otherJobPrio > up.priority || otherJobPrio == 0) {
-					//System.out.println(getQueueString());
-					//System.out.println("Inserted job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" before job with prio "+otherJobPrio);
+					System.out.println(getQueueString());
+					System.out.println("Inserted job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" before job with prio "+otherJobPrio);
 					
 					queue.add(queue.indexOf(otherJob), job);
 					
-					//System.out.println(getQueueString());
-					//System.out.println();
+					System.out.println(getQueueString());
+					System.out.println();
 					return;
 				}
 			}
 		}
-		//System.out.println(getQueueString());
-		//System.out.println("Added job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" at the end of the queue("+queue.size()+")");
+		System.out.println(getQueueString());
+		System.out.println("Added job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" at the end of the queue("+queue.size()+")");
 		
 		queue.add(job);
 		
-		//System.out.println(getQueueString());
-		//System.out.println();
+		System.out.println(getQueueString());
+		System.out.println();
 	}
 	
 	private String getQueueString() {
