@@ -12,10 +12,13 @@ import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
-public class BATCH_PRIORITY2_Scheduler implements Scheduler {
+public class BATCH_PRIORITY_FAIR_Scheduler implements Scheduler {
 
-	private LinkedList<Job> queue;
-	private HashMap<Long, UserPriority> idToUserMap;
+	private LinkedList<Job> queueJob;
+	private LinkedList<Long> queuePriority;
+	private HashMap<Long, Long> idToUserLastSubmit;
+	private HashMap<Long, Long> idToUserLastPriority;
+	private long batch_id_max;
 	
 	private Schedule schedule;
 	
@@ -28,9 +31,12 @@ public class BATCH_PRIORITY2_Scheduler implements Scheduler {
 	
 	@Override
 	public void initialize() {
-		queue = new LinkedList<Job>();
+		queueJob = new LinkedList<Job>();
+		queuePriority = new LinkedList<Long>();
 		schedule = new Schedule(res_max);
-		idToUserMap = new HashMap<Long, UserPriority>();
+		batch_id_max = 0;
+		idToUserLastSubmit = new HashMap<Long, Long>();
+		idToUserLastPriority = new HashMap<Long, Long>();
 		reservation_begin = Long.MIN_VALUE;
 		reservation_job = null;
 		t_threshold = 20 * 60;
@@ -58,14 +64,14 @@ public class BATCH_PRIORITY2_Scheduler implements Scheduler {
 	
 	@Override
 	public long simulateUntil(long t_now, long t_target) {
-		for (Job job : queue) {
+		for (Job job : queueJob) {
 			job.set(Job.WAIT_TIME, t_now - job.get(Job.SUBMIT_TIME));
 		}
 		if(reservation_job != null) {
 			reservation_job.set(Job.WAIT_TIME, t_now - reservation_job.get(Job.SUBMIT_TIME));
 		}
 		
-		if(!queue.isEmpty() || reservation_job != null) {
+		if(!queueJob.isEmpty() || reservation_job != null) {
 			if (reservation_job != null && schedule.isFitToSchedule(reservation_job)) {
 				schedule.addToSchedule(reservation_job, t_now);
 
@@ -77,19 +83,23 @@ public class BATCH_PRIORITY2_Scheduler implements Scheduler {
 				return t_now;
 				
 			} else if (reservation_job == null) {
-				reservation_begin = schedule.getNextFitTime(queue.peek(), t_now);
-				reservation_job = queue.poll();
+				reservation_begin = schedule.getNextFitTime(queueJob.peek(), t_now);
+				reservation_job = queueJob.peek();
+				queuePriority.removeFirst();
+				queueJob.removeFirst();
 				
 				return t_now;
 			
-			} else if(!queue.isEmpty()) {
-				for (Job job : queue) {
+			} else if(!queueJob.isEmpty()) {
+				for (Job job : queueJob) {
 					if (schedule.isFitToSchedule(job) && job.get(Job.TIME_REQUESTED) + t_now < reservation_begin) {
 						schedule.addToSchedule(job, t_now);
 
 						SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
 
-						queue.remove(job);
+						int removeIndex = queueJob.indexOf(job);
+						queuePriority.remove(removeIndex);
+						queueJob.remove(removeIndex);
 
 						return t_now;
 					}
@@ -110,83 +120,68 @@ public class BATCH_PRIORITY2_Scheduler implements Scheduler {
 		return t_target;
 	}
 	
-	private void updatePriorities(long t_now) {
-		for (UserPriority up : idToUserMap.values()) {
-			if(up.t_last_submit + t_threshold < t_now && up.priority > 0) {
-				for (UserPriority upOther : idToUserMap.values()) {
-					if(upOther.priority > up.priority) {
-						upOther.priority--;
-					}
-				}
-				up.priority = 0;
-			} else if(up.priority == 0 && up.t_last_submit + t_threshold >= t_now) {
-				up.priority = getMaxPriority() + 1;
-			}
-		}
-	}
-	
 	@Override
 	public void enqueueJob(Job job) {
 		final long userId = job.get(Job.USER_ID);
+		final long t_now = SimulationInterface.instance().getCurrentTime();
+
+		final long t_last_submit = idToUserLastSubmit.getOrDefault(userId, Long.MIN_VALUE);
+		idToUserLastSubmit.put(userId, job.get(Job.SUBMIT_TIME));
+
 		final boolean isUserInQueue = isUserInQueue(userId);
+		final boolean isUserInBatch = t_now - t_last_submit < t_threshold;
 
-		UserPriority up = idToUserMap.get(userId);
-		if(up == null) {
-			idToUserMap.put(userId, up = new UserPriority());
-		}
-		up.t_last_submit = job.get(Job.SUBMIT_TIME);
+		long jobPriority;
 		
-		updatePriorities(SimulationInterface.instance().getCurrentTime());
-		
-		if(up.priority > 0 && isUserInQueue) {
-			Job prevJob = queue.peek();
-			for (int i = 1; i < queue.size(); i++) {
-				Job otherJob = queue.get(i);
-				if(otherJob.get(Job.USER_ID) != userId && prevJob.get(Job.USER_ID) == userId) {
-
-					long prevJobPrio = idToUserMap.get(prevJob.get(Job.USER_ID)).priority;
-					System.out.println(getQueueString());
-					System.out.println("Added job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" to batch of prio "+prevJobPrio);
-					
-					queue.add(queue.indexOf(otherJob), job);
-
-					System.out.println(getQueueString());
-					System.out.println();
-					
-					return;
-				}
-				prevJob = otherJob;
+		if(isUserInBatch) {
+			if(isUserInQueue) {
+				jobPriority = getLastPriorityOfUser(userId);
+			} else if(idToUserLastPriority.containsKey(userId)){
+				jobPriority = idToUserLastPriority.get(userId);
+			} else {
+				jobPriority = batch_id_max++;
+				idToUserLastPriority.put(userId, jobPriority);
 			}
-		} else if(up.priority > 0 && !isUserInQueue) {
-			for (Job otherJob : queue) {
-				long otherJobPrio = idToUserMap.get(otherJob.get(Job.USER_ID)).priority;
-				if(otherJobPrio > up.priority || otherJobPrio == 0) {
-					System.out.println(getQueueString());
-					System.out.println("Inserted job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" before job with prio "+otherJobPrio);
-					
-					queue.add(queue.indexOf(otherJob), job);
-					
-					System.out.println(getQueueString());
-					System.out.println();
-					return;
-				}
+		} else {
+			jobPriority = batch_id_max++;
+			idToUserLastPriority.put(userId, jobPriority);
+		}
+		
+		for (int i = 0; i< queueJob.size(); i++) {
+			if(jobPriority < queuePriority.get(i)) {
+				queueJob.add(i, job);
+				queuePriority.add(i, jobPriority);
+				return;
 			}
 		}
-		System.out.println(getQueueString());
-		System.out.println("Added job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" at the end of the queue("+queue.size()+")");
-		
-		queue.add(job);
-		
-		System.out.println(getQueueString());
-		System.out.println();
+		queueJob.add(job);
+		queuePriority.add(jobPriority);
 	}
 	
-	private String getQueueString() {
+	private boolean isUserInQueue(long userId) {
+		for (Job job : queueJob) {
+			if(job.get(Job.USER_ID) == userId)
+				return true;
+		}
+		return false;
+	}
+	
+	private long getLastPriorityOfUser(long userId){
+		for(int i = queueJob.size() - 1; i >= 0; i--) {
+			Job job = queueJob.get(i);
+			if(job.get(Job.USER_ID) == userId) {
+				return queuePriority.get(i);
+			}
+		}
+		throw new IllegalAccessError("Cannot determine last priority of user "+userId+", he is not in the queue.");
+	}
+	
+	/*private String getQueueString() {
 		StringBuilder builder = new StringBuilder();
-		for (Job job : queue) {
+		for (Job job : queueJob) {
 			long jobId = job.get(Job.JOB_ID);
 			long userId = job.get(Job.USER_ID);
-			int up = idToUserMap.get(userId).priority;
+			long up = idToUserMap.get(userId);
 			builder.append("(");
 			builder.append(jobId);
 			builder.append(",");
@@ -196,32 +191,5 @@ public class BATCH_PRIORITY2_Scheduler implements Scheduler {
 			builder.append(")");
 		}
 		return builder.toString();
-	}
-	
-	private boolean isUserInQueue(long userId) {
-		for (Job job : queue) {
-			if(job.get(Job.USER_ID) == userId)
-				return true;
-		}
-		return false;
-	}
-	
-	private int getMaxPriority() {
-		int max = 0;
-		for (UserPriority up : idToUserMap.values()) {
-			if(up.priority > max)
-				max = up.priority;
-		}
-		return max;
-	}
-	
-	private class UserPriority {
-		private int priority;
-		private long t_last_submit;
-		
-		public UserPriority() {
-			priority = 0;
-			t_last_submit = Long.MIN_VALUE;
-		}
-	}
+	}*/
 }

@@ -16,6 +16,7 @@ import de.dortmund.tu.wmsi.logger.Logger;
 import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
 import de.dortmund.tu.wmsi.routine.timing.RoutineTimingOnce;
 import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
+import de.dortmund.tu.wmsi.util.JobSubmitComparator;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
 public class AVGWTLogger implements Logger {
@@ -23,6 +24,7 @@ public class AVGWTLogger implements Logger {
 	private HashMap	<Long, Long>	userToWaitTime_real;
 	private HashMap	<Long, Long>	userToJobCount;
 	private HashMap	<Long, Long>	userToWaitTime_accwt;
+	private HashMap	<Long, ArrayList<Job>>	userToJobs;
 	private	ArrayList<Long>			userids;
 	private	ArrayList<Long>			waitTimes;
 
@@ -31,10 +33,26 @@ public class AVGWTLogger implements Logger {
 	private long t_last_submit = Long.MIN_VALUE;
 	private long t_last_finish = Long.MIN_VALUE;
 	private long max_resources = 0;
+	private long t_threshold = 20*60;
 	
 	private static LinkedList<String> log = new LinkedList<String>();
 
 	private PropertiesHandler properties = null;
+	
+	public void clear() {
+		globalWaitTime = 0;
+		globalAccWaitTime = 0;
+		globalJobCount = 0;
+		throughput = 0;
+		t_last_submit = Long.MIN_VALUE;
+		t_last_finish = Long.MIN_VALUE;
+		userToWaitTime_real = new HashMap<Long, Long>();
+		userToJobCount = new HashMap<Long, Long>();
+		userToWaitTime_accwt = new HashMap<Long, Long>();
+		userToJobs = new HashMap<Long, ArrayList<Job>>();
+		userids = new ArrayList<Long>(512);
+		waitTimes = new ArrayList<Long>(512000);
+	}
 	
 	@Override
 	public void initialize() {
@@ -109,6 +127,17 @@ public class AVGWTLogger implements Logger {
 							}
 							long[] boxPlotValues = StatisticalMathHelper.getBoxPlotValues(waitTimesPrimitive);
 							
+							JobSubmitComparator jsc = new JobSubmitComparator();
+							for(ArrayList<Job> jobs : userToJobs.values()) {
+								jobs.sort(jsc);
+								long avgb = 0;
+								long prevSubmitTime = Long.MIN_VALUE;
+								for(Job job : jobs) {
+									long newSubmitTime = job.get(Job.SUBMIT_TIME);
+									if(newSubmitTime prevSubmitTime)
+								}
+							}
+							
 							double tp = ((double)(throughput/t_simulated))/(double)max_resources;
 							DecimalFormatSymbols dfs = new DecimalFormatSymbols();
 							dfs.setDecimalSeparator('.');
@@ -160,6 +189,10 @@ public class AVGWTLogger implements Logger {
 		long accwt = userToWaitTime_accwt.getOrDefault(user, 0L);
 		long jc = userToJobCount.getOrDefault(user, 0L);
 		
+		ArrayList<Job> jobsOfUser = userToJobs.getOrDefault(user, new ArrayList<Job>());
+		jobsOfUser.add(job);
+		userToJobs.put(user, jobsOfUser);
+		
 		wt += job.get(Job.WAIT_TIME);
 		accwt += Math.max(0, job.get(Job.WAIT_TIME) - StatisticalMathHelper.userAccepteableWaitTime(job.get(Job.TIME_REQUESTED)));
 		jc++;
@@ -206,20 +239,6 @@ public class AVGWTLogger implements Logger {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public void clear() {
-		globalWaitTime = 0;
-		globalAccWaitTime = 0;
-		globalJobCount = 0;
-		throughput = 0;
-		t_last_submit = Long.MIN_VALUE;
-		t_last_finish = Long.MIN_VALUE;
-		userToWaitTime_real = new HashMap<Long, Long>();
-		userToJobCount = new HashMap<Long, Long>();
-		userToWaitTime_accwt = new HashMap<Long, Long>();
-		userids = new ArrayList<Long>(512);
-		waitTimes = new ArrayList<Long>(512000);
 	}
 
 	@Override

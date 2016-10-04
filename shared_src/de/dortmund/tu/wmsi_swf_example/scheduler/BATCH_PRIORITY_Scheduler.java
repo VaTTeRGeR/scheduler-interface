@@ -144,7 +144,7 @@ public class BATCH_PRIORITY_Scheduler implements Scheduler {
 				Job otherJob = queue.get(i);
 				if(otherJob.get(Job.USER_ID) != userId && prevJob.get(Job.USER_ID) == userId) {
 
-					long prevJobPrio = idToUserMap.get(prevJob.get(Job.USER_ID)).priority;
+					//long prevJobPrio = idToUserMap.get(prevJob.get(Job.USER_ID)).priority;
 					//System.out.println(getQueueString());
 					//System.out.println("Added job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" to batch of prio "+prevJobPrio);
 					
@@ -160,7 +160,7 @@ public class BATCH_PRIORITY_Scheduler implements Scheduler {
 		} else if(up.priority > 0 && !isUserInQueue) {
 			for (Job otherJob : queue) {
 				long otherJobPrio = idToUserMap.get(otherJob.get(Job.USER_ID)).priority;
-				if(otherJobPrio > up.priority || otherJobPrio == 0) {
+				if(otherJobPrio > up.priority/* || otherJobPrio == 0*/) { // no starvation
 					//System.out.println(getQueueString());
 					//System.out.println("Inserted job "+job.get(Job.JOB_ID)+" with prio "+up.priority+" before job with prio "+otherJobPrio);
 					
