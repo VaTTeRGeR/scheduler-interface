@@ -33,6 +33,7 @@ public class AVGWTLogger implements Logger {
 	private long t_last_submit = Long.MIN_VALUE;
 	private long t_last_finish = Long.MIN_VALUE;
 	private long max_resources = 0;
+	
 	private long t_threshold = 20*60;
 	
 	private static LinkedList<String> log = new LinkedList<String>();
@@ -52,6 +53,7 @@ public class AVGWTLogger implements Logger {
 		userToJobs = new HashMap<Long, ArrayList<Job>>();
 		userids = new ArrayList<Long>(512);
 		waitTimes = new ArrayList<Long>(512000);
+		t_threshold = 20*60;
 	}
 	
 	@Override
@@ -83,6 +85,11 @@ public class AVGWTLogger implements Logger {
 			builder.append(String.format("%20s", "AWTA_M"));
 			builder.append(String.format("%20s", "AWTA_UQ"));
 			builder.append(String.format("%20s", "AWTA_UW"));
+			
+			builder.append(String.format("%20s", "ABWT=1"));
+			builder.append(String.format("%20s", "ABWT>1"));
+			builder.append(String.format("%20s", "#B=1"));
+			builder.append(String.format("%20s", "#B>1"));
 			
 			log.add(builder.toString());
 		}
@@ -127,35 +134,82 @@ public class AVGWTLogger implements Logger {
 							}
 							long[] boxPlotValues = StatisticalMathHelper.getBoxPlotValues(waitTimesPrimitive);
 							
+							long sumB1 = 0; //sum of avg batch (size = 1) waittimes
+							long numB1 = 0; //number of avg batch (size = 1) waittimes
+							
+							long sumBG1 = 0; //sum of avg batch (size > 1) waittimes
+							long numBG1 = 0; //number of avg batch (size > 1) waittimes
+							
 							JobSubmitComparator jsc = new JobSubmitComparator();
-							for(ArrayList<Job> jobs : userToJobs.values()) {
-								jobs.sort(jsc);
-								long avgb = 0;
-								long prevSubmitTime = Long.MIN_VALUE;
-								for(Job job : jobs) {
+							for(ArrayList<Job> jobList : userToJobs.values()) {
+								jobList.sort(jsc);
+								
+								long sumWaitTime = 0; //sum of waittimes in current batch
+								long numJobs = 0; //number of jobs in current batch
+								
+								long prevSubmitTime = Long.MIN_VALUE; //submit time of previous job or "minus infinity"
+								
+								for(Job job : jobList) {
 									long newSubmitTime = job.get(Job.SUBMIT_TIME);
-									if(newSubmitTime prevSubmitTime)
+									if(newSubmitTime - t_threshold < prevSubmitTime) { //batch ended
+										if(numJobs == 1) { //single job batch
+											sumB1 += sumWaitTime;
+											numB1 ++;
+										} else if (numJobs > 1) { //multiple job batch
+											sumBG1 += sumWaitTime/numJobs;
+											numBG1 ++;
+										}
+										numJobs = 1; //starting a new batch
+										sumWaitTime = job.get(Job.WAIT_TIME);
+									} else { //batch is continued
+										numJobs ++;
+										sumWaitTime += job.get(Job.WAIT_TIME);
+									}
+									prevSubmitTime = newSubmitTime;
+								}
+								if(numJobs == 1) { //Check for a still running batch
+									sumB1 += sumWaitTime;
+									numB1 ++;
+								} else if (numJobs > 1) {
+									sumBG1 += sumWaitTime/numJobs;
+									numBG1 ++;
 								}
 							}
+							
+							long avgWTB1 = sumB1/numB1; //ABWT=1
+							long avgWTBG1 = sumBG1/numBG1; //ABWT>1
 							
 							double tp = ((double)(throughput/t_simulated))/(double)max_resources;
 							DecimalFormatSymbols dfs = new DecimalFormatSymbols();
 							dfs.setDecimalSeparator('.');
 							log.add(String.format("%20s", avgWaitTime)+
-									String.format("%20s", avgAccWaitTime)+
-									String.format("%20s", (globalWaitTime/globalJobCount))+
-									String.format("%20s", (globalAccWaitTime/globalJobCount))+
-									String.format("%20s", new DecimalFormat("0.0000", dfs).format(tp))+
-									String.format("%20s", t_last_submit)+
-									String.format("%20s", t_last_finish)+
-									String.format("%20s", globalJobCount)+
-									String.format("%20s", userids.size())+
-									String.format("%20s", globalJobCount/userids.size())+
-									String.format("%20s", boxPlotValues[0])+
-									String.format("%20s", boxPlotValues[1])+
-									String.format("%20s", boxPlotValues[2])+
-									String.format("%20s", boxPlotValues[3])+
-									String.format("%20s", boxPlotValues[4]));
+								String.format("%20s", avgAccWaitTime)+
+								
+								String.format("%20s", (globalWaitTime/globalJobCount))+
+								String.format("%20s", (globalAccWaitTime/globalJobCount))+
+								
+								String.format("%20s", new DecimalFormat("0.0000", dfs).format(tp))+
+								
+								String.format("%20s", t_last_submit)+
+								String.format("%20s", t_last_finish)+
+								
+								String.format("%20s", globalJobCount)+
+								
+								String.format("%20s", userids.size())+
+								
+								String.format("%20s", globalJobCount/userids.size())+
+								
+								String.format("%20s", boxPlotValues[0])+
+								String.format("%20s", boxPlotValues[1])+
+								String.format("%20s", boxPlotValues[2])+
+								String.format("%20s", boxPlotValues[3])+
+								String.format("%20s", boxPlotValues[4])+
+								
+								String.format("%20s", avgWTB1)+
+								String.format("%20s", avgWTBG1)+
+								String.format("%20s", numB1)+
+								String.format("%20s", numBG1)
+							);
 							
 							saveLog(swfPath);
 							
