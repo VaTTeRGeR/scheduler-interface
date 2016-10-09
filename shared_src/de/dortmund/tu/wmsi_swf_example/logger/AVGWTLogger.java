@@ -88,6 +88,7 @@ public class AVGWTLogger implements Logger {
 			
 			builder.append(String.format("%20s", "ABWT=1"));
 			builder.append(String.format("%20s", "ABWT>1"));
+			builder.append(String.format("%20s", "ABRSPT>1"));
 			builder.append(String.format("%20s", "#B=1"));
 			builder.append(String.format("%20s", "#B>1"));
 			
@@ -138,8 +139,12 @@ public class AVGWTLogger implements Logger {
 							long numB1 = 0; //number of avg batch (size = 1) waittimes
 							
 							long sumBG1 = 0; //sum of avg batch (size > 1) waittimes
+							long sumBG1RESPONSE = 0; //sum of batches (size > 1) response times
 							long numBG1 = 0; //number of avg batch (size > 1) waittimes
 							
+							long beginBG1 = 0; //The first submit time of this batch
+							long endBG1 = 0; //The biggest finish time of the current batch
+
 							JobSubmitComparator jsc = new JobSubmitComparator();
 							for(ArrayList<Job> jobList : userToJobs.values()) {
 								jobList.sort(jsc);
@@ -151,19 +156,24 @@ public class AVGWTLogger implements Logger {
 								
 								for(Job job : jobList) {
 									long newSubmitTime = job.get(Job.SUBMIT_TIME);
-									if(newSubmitTime - t_threshold < prevSubmitTime) { //batch ended
+									long newFinishTime = job.get(Job.SUBMIT_TIME)+job.get(Job.WAIT_TIME)+job.get(Job.RUN_TIME);
+									if(newSubmitTime - t_threshold > prevSubmitTime) { //batch ended
 										if(numJobs == 1) { //single job batch
 											sumB1 += sumWaitTime;
 											numB1 ++;
 										} else if (numJobs > 1) { //multiple job batch
 											sumBG1 += sumWaitTime/numJobs;
 											numBG1 ++;
+											sumBG1RESPONSE += endBG1-beginBG1;
 										}
+										beginBG1 = newSubmitTime; //batch begin time is set
+										endBG1 = newFinishTime; //update batch finish time
 										numJobs = 1; //starting a new batch
 										sumWaitTime = job.get(Job.WAIT_TIME);
 									} else { //batch is continued
 										numJobs ++;
 										sumWaitTime += job.get(Job.WAIT_TIME);
+										endBG1 = Math.max(endBG1, newFinishTime); //update batch finish time
 									}
 									prevSubmitTime = newSubmitTime;
 								}
@@ -178,6 +188,7 @@ public class AVGWTLogger implements Logger {
 							
 							long avgWTB1 = sumB1/numB1; //ABWT=1
 							long avgWTBG1 = sumBG1/numBG1; //ABWT>1
+							long avgRSPTBG1 = sumBG1RESPONSE/numBG1; //AVG BATCH RESPONSE TIME>1
 							
 							double tp = ((double)(throughput/t_simulated))/(double)max_resources;
 							DecimalFormatSymbols dfs = new DecimalFormatSymbols();
@@ -189,6 +200,7 @@ public class AVGWTLogger implements Logger {
 								String.format("%20s", (globalAccWaitTime/globalJobCount))+
 								
 								String.format("%20s", new DecimalFormat("0.0000", dfs).format(tp))+
+								String.format("%20s", throughput)+
 								
 								String.format("%20s", t_last_submit)+
 								String.format("%20s", t_last_finish)+
@@ -207,6 +219,7 @@ public class AVGWTLogger implements Logger {
 								
 								String.format("%20s", avgWTB1)+
 								String.format("%20s", avgWTBG1)+
+								String.format("%20s", avgRSPTBG1)+
 								String.format("%20s", numB1)+
 								String.format("%20s", numBG1)
 							);
