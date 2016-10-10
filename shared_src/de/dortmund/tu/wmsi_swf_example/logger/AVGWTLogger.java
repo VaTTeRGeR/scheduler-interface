@@ -21,12 +21,12 @@ import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
 public class AVGWTLogger implements Logger {
 
-	private HashMap	<Long, Long>	userToWaitTime_real;
-	private HashMap	<Long, Long>	userToJobCount;
-	private HashMap	<Long, Long>	userToWaitTime_accwt;
+	private HashMap	<Long, Long>			userToWaitTime_real;
+	private HashMap	<Long, Long>			userToJobCount;
+	private HashMap	<Long, Long>			userToWaitTime_accwt;
 	private HashMap	<Long, ArrayList<Job>>	userToJobs;
-	private	ArrayList<Long>			userids;
-	private	ArrayList<Long>			waitTimes;
+	private	ArrayList<Long>					userids;
+	private	ArrayList<Long>					waitTimes;
 
 	private long globalWaitTime = 0, globalAccWaitTime = 0, globalJobCount = 0;
 	private long throughput = 0;
@@ -313,6 +313,6 @@ public class AVGWTLogger implements Logger {
 	public void jobStarted(JobStartedEvent event) {}
 
 	public static void resetLog() {
-		log.clear();
+		log = new LinkedList<>();
 	}
 }

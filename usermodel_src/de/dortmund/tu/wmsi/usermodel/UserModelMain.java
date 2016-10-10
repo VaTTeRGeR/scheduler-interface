@@ -21,14 +21,14 @@ public class UserModelMain {
 
 		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 30; i++) {
+		for (int i = 0; i < 20; i++) {
 			si.configure(config0);
 			si.simulate();
 		}
 
 		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 30; i++) {
+		for (int i = 0; i < 20; i++) {
 			si.configure(config1);
 			si.simulate();
 		}
@@ -39,5 +39,7 @@ public class UserModelMain {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		SimulationInterface.destroy();
+		System.gc();
 	}
 }
