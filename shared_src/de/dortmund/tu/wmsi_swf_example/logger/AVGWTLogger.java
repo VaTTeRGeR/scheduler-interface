@@ -70,6 +70,7 @@ public class AVGWTLogger implements Logger {
 			builder.append(String.format("%20s", "AVGACCWT_ALL"));
 			
 			builder.append(String.format("%20s", "THROUGHPUT"));
+			builder.append(String.format("%20s", "CPU HOURS"));
 			
 			builder.append(String.format("%20s", "LAST_SUBMIT"));
 			builder.append(String.format("%20s", "LAST_FINISH"));
