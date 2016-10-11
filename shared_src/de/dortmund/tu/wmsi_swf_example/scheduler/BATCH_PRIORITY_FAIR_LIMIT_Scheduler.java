@@ -12,7 +12,7 @@ import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
-public class BATCH_PRIORITY_FAIR_THRESHOLD_Scheduler implements Scheduler {
+public class BATCH_PRIORITY_FAIR_LIMIT_Scheduler implements Scheduler {
 
 	private LinkedList<Job> queueJob;
 	private LinkedList<Long> queuePriority;
