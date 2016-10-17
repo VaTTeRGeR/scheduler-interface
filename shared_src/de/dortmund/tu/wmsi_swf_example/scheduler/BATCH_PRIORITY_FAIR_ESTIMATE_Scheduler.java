@@ -1,5 +1,6 @@
 package de.dortmund.tu.wmsi_swf_example.scheduler;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -18,16 +19,20 @@ public class BATCH_PRIORITY_FAIR_ESTIMATE_Scheduler implements Scheduler {
 	private LinkedList<Long> queuePriority;
 	private HashMap<Long, Long> idToUserLastSubmit;
 	private HashMap<Long, Long> idToUserLastPriority;
+	private HashMap<Long, Double> idToUserLastTimeAccuracy;
+	private HashMap<Long, ArrayList<Double>> idToUserLastTimeAccuracyList;
 	private long batch_id_max;
 	
 	private Schedule schedule;
 	
 	private long res_max = -1;
 
-	private long reservation_begin;
+	private long t_reservation_begin;
 	private Job reservation_job;
 	
 	private long t_threshold;
+
+	private int userTimeAccuracyAverageSize = 5;
 	
 	@Override
 	public void initialize() {
@@ -37,7 +42,9 @@ public class BATCH_PRIORITY_FAIR_ESTIMATE_Scheduler implements Scheduler {
 		batch_id_max = 0;
 		idToUserLastSubmit = new HashMap<Long, Long>();
 		idToUserLastPriority = new HashMap<Long, Long>();
-		reservation_begin = Long.MIN_VALUE;
+		idToUserLastTimeAccuracy = new HashMap<Long, Double>();
+		idToUserLastTimeAccuracyList = new HashMap<Long, ArrayList<Double>>();
+		t_reservation_begin = Long.MIN_VALUE;
 		reservation_job = null;
 		t_threshold = 20 * 60;
 		if(res_max == -1)
@@ -67,23 +74,25 @@ public class BATCH_PRIORITY_FAIR_ESTIMATE_Scheduler implements Scheduler {
 		for (Job job : queueJob) {
 			job.set(Job.WAIT_TIME, t_now - job.get(Job.SUBMIT_TIME));
 		}
+
 		if(reservation_job != null) {
 			reservation_job.set(Job.WAIT_TIME, t_now - reservation_job.get(Job.SUBMIT_TIME));
 		}
 		
 		if(!queueJob.isEmpty() || reservation_job != null) {
+			t_reservation_begin = Math.max(t_now, t_reservation_begin);
 			if (reservation_job != null && schedule.isFitToSchedule(reservation_job)) {
 				schedule.addToSchedule(reservation_job, t_now);
 
 				SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, reservation_job));
 				
-				reservation_begin = Long.MIN_VALUE;
+				t_reservation_begin = Long.MIN_VALUE;
 				reservation_job = null;
 
 				return t_now;
 				
 			} else if (reservation_job == null) {
-				reservation_begin = schedule.getNextFitTime(queueJob.peek(), t_now);
+				t_reservation_begin = schedule.getNextFitTime(queueJob.peek(), t_now);
 				reservation_job = queueJob.peek();
 				queuePriority.removeFirst();
 				queueJob.removeFirst();
@@ -92,7 +101,8 @@ public class BATCH_PRIORITY_FAIR_ESTIMATE_Scheduler implements Scheduler {
 			
 			} else if(!queueJob.isEmpty()) {
 				for (Job job : queueJob) {
-					if (schedule.isFitToSchedule(job) && job.get(Job.TIME_REQUESTED) + t_now < reservation_begin) {
+					double accuracyFactor = idToUserLastTimeAccuracy.get(job.get(Job.USER_ID));
+					if (schedule.isFitToSchedule(job) && ((long)(job.get(Job.TIME_REQUESTED)*accuracyFactor)) + t_now < t_reservation_begin) {
 						schedule.addToSchedule(job, t_now);
 
 						SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
@@ -110,6 +120,8 @@ public class BATCH_PRIORITY_FAIR_ESTIMATE_Scheduler implements Scheduler {
 		// a job is going to be finished before t_target is reached
 		if(!schedule.isEmpty() && schedule.peekNextFinishedJobEntry(t_target) != null) {
 			JobFinishEntry entry = schedule.pollNextFinishedJobEntry(t_target);
+			
+			updateUserTimeAccuracy(entry.job);
 
 			SimulationInterface.instance().submitEvent(new JobFinishedEvent(entry.t_end, entry.job));
 			
@@ -130,6 +142,16 @@ public class BATCH_PRIORITY_FAIR_ESTIMATE_Scheduler implements Scheduler {
 
 		final boolean isUserInQueue = isUserInQueue(userId);
 		final boolean isUserInBatch = t_now - t_last_submit < t_threshold;
+		
+		ArrayList<Double> lastUserTimeAccuracyList = idToUserLastTimeAccuracyList.get(userId);
+		if(lastUserTimeAccuracyList == null) {
+			lastUserTimeAccuracyList = new ArrayList<Double>();
+			idToUserLastTimeAccuracyList.put(userId, lastUserTimeAccuracyList);
+			for (int i = 0; i < userTimeAccuracyAverageSize; i++) {
+				lastUserTimeAccuracyList.add(1.0);
+			}
+		}
+		updateUserTimeAccuracy(userId);
 
 		long jobPriority;
 		
@@ -156,6 +178,26 @@ public class BATCH_PRIORITY_FAIR_ESTIMATE_Scheduler implements Scheduler {
 		}
 		queueJob.add(job);
 		queuePriority.add(jobPriority);
+	}
+	
+	private void updateUserTimeAccuracy(long userId) {
+		double userLastTimeAccuracySum = 0;
+		for(double value : idToUserLastTimeAccuracyList.get(userId)) {
+			userLastTimeAccuracySum += value;
+		}
+		idToUserLastTimeAccuracy.put(userId, userLastTimeAccuracySum/userTimeAccuracyAverageSize);
+	}
+	
+	private void updateUserTimeAccuracy(Job job) {
+		final long userId = job.get(Job.USER_ID);
+		final double t_req = job.get(Job.TIME_REQUESTED);
+		final double t_run = job.get(Job.RUN_TIME);
+		
+		ArrayList<Double> accuracyList = idToUserLastTimeAccuracyList.get(userId);
+		accuracyList.remove(0);
+		accuracyList.add(t_run/t_req);
+		
+		updateUserTimeAccuracy(userId);
 	}
 	
 	private boolean isUserInQueue(long userId) {

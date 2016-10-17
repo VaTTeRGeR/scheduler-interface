@@ -11,8 +11,9 @@ public class UserModelMain {
 		//runsim("ctc_bpf_config/simulation_batch_priority_fair_avg.properties", "ctc_bpf_config/simulation_easy_avg.properties", "ctc");
 		//runsim("kth_bpf_config/simulation_batch_priority_fair_avg.properties", "kth_bpf_config/simulation_easy_avg.properties", "kth");
 		//runsim("lanl_bpf_config/simulation_batch_priority_fair_avg.properties", "lanl_bpf_config/simulation_easy_avg.properties", "lanl");
-		runsim("mira_bpf_config/simulation_batch_priority_fair_avg.properties", "mira_bpf_config/simulation_easy_avg.properties", "mira");
-		runsim("mira_bpfl_config/simulation_batch_priority_fair_limit_avg.properties", "mira_bpf_config/simulation_easy_avg.properties", "mira_limit");
+		//runsim("mira_bpf_config/simulation_batch_priority_fair_avg.properties", "mira_bpf_config/simulation_easy_avg.properties", "mira");
+		//runsim("mira_bpfl_config/simulation_batch_priority_fair_limit_avg.properties", "mira_bpf_config/simulation_easy_avg.properties", "mira_limit");
+		runsim("mira_bpfe_config/simulation_batch_priority_fair_estimate_avg.properties", "mira_bpfe_config/simulation_easy_avg.properties", "mira_estimate");
 	}
 	
 	private static void runsim(String config0, String config1, String appendix) {
@@ -22,14 +23,14 @@ public class UserModelMain {
 
 		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < 5; i++) {
 			si.configure(config0);
 			si.simulate();
 		}
 
 		AVGWTLogger.resetLog();
 
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < 5; i++) {
 			si.configure(config1);
 			si.simulate();
 		}
