@@ -7,54 +7,73 @@ import de.dortmund.tu.wmsi_swf_example.logger.AVGWTLogger;
 
 public class UserModelMain {
 
-	private static final boolean doAVG = false;
+	private static final boolean doAVG = true;
 	private static final boolean doSWF = true;
 	private static final int numSimAVG = 20;
 	private static final int numSimSWF = 5;
 	
 	public static void main(String[] args) {
 		if(doAVG) {
-			runsim(numSimAVG,"mira_bpf_config/simulation_batch_priority_fair_estimate_avg.properties", "mira_bpf_config/simulation_easy_avg.properties", "mira_estimate_avg");
-			runsim(numSimAVG,"lanl_bpf_config/simulation_batch_priority_fair_estimate_avg.properties", "lanl_bpf_config/simulation_easy_avg.properties", "lanl_estimate_avg");
-			runsim(numSimAVG,"ctc_bpf_config/simulation_batch_priority_fair_estimate_avg.properties", "ctc_bpf_config/simulation_easy_avg.properties", "ctc_estimate_avg");
-			runsim(numSimAVG,"kth_bpf_config/simulation_batch_priority_fair_estimate_avg.properties", "kth_bpf_config/simulation_easy_avg.properties", "kth_estimate_avg");
+			runsim(numSimAVG, "mira_avg",
+					"mira_bpf_config/simulation_batch_priority_fair_estimate_avg.properties",
+					"mira_bpf_config/simulation_batch_priority_fair_estimate_bfo_avg.properties",
+					"mira_bpf_config/simulation_batch_priority_fair_avg.properties",
+					"mira_bpf_config/simulation_easy_estimate_avg.properties",
+					"mira_bpf_config/simulation_easy_avg.properties");
+			
+			runsim(numSimAVG, "lanl_avg",
+					"lanl_bpf_config/simulation_batch_priority_fair_estimate_avg.properties",
+					"lanl_bpf_config/simulation_batch_priority_fair_estimate_bfo_avg.properties",
+					"lanl_bpf_config/simulation_batch_priority_fair_avg.properties",
+					"lanl_bpf_config/simulation_easy_estimate_avg.properties",
+					"lanl_bpf_config/simulation_easy_avg.properties", "lanl_bpf_estimate_avg");
+			
+			runsim(numSimAVG, "ctc_avg",
+					"ctc_bpf_config/simulation_batch_priority_fair_estimate_avg.properties",
+					"ctc_bpf_config/simulation_batch_priority_fair_estimate_bfo_avg.properties",
+					"ctc_bpf_config/simulation_batch_priority_fair_avg.properties",
+					"ctc_bpf_config/simulation_easy_estimate_avg.properties",
+					"ctc_bpf_config/simulation_easy_avg.properties");
+			
+			runsim(numSimAVG, "kth_avg",
+					"kth_bpf_config/simulation_batch_priority_fair_estimate_avg.properties",
+					"kth_bpf_config/simulation_batch_priority_fair_estimate_bfo_avg.properties",
+					"kth_bpf_config/simulation_batch_priority_fair_avg.properties",
+					"kth_bpf_config/simulation_easy_estimate_avg.properties",
+					"kth_bpf_config/simulation_easy_avg.properties");
 		}
 		if(doSWF) {
 			for (int i = 1; i <= numSimSWF; i++) {
-				runsim(1,"mira_bpf_config/simulation_batch_priority_fair_estimate_swf.properties", "mira_bpf_config/simulation_easy_swf.properties", "mira_estimate_swf"+i);
-				runsim(1,"lanl_bpf_config/simulation_batch_priority_fair_estimate_swf.properties", "lanl_bpf_config/simulation_easy_swf.properties", "lanl_estimate_swf"+i);
-				runsim(1,"ctc_bpf_config/simulation_batch_priority_fair_estimate_swf.properties", "ctc_bpf_config/simulation_easy_swf.properties", "ctc_estimate_swf"+i);
-				runsim(1,"kth_bpf_config/simulation_batch_priority_fair_estimate_swf.properties", "kth_bpf_config/simulation_easy_swf.properties", "kth_estimate_swf"+i);
+				runsim(1, "mira_bpf_estimate_swf"+i, "mira_bpf_config/simulation_batch_priority_fair_estimate_swf.properties", "mira_bpf_config/simulation_easy_swf.properties");
+				runsim(1, "lanl_bpf_estimate_swf"+i, "lanl_bpf_config/simulation_batch_priority_fair_estimate_swf.properties", "lanl_bpf_config/simulation_easy_swf.properties");
+				runsim(1, "ctc_bpf_estimate_swf"+i, "ctc_bpf_config/simulation_batch_priority_fair_estimate_swf.properties", "ctc_bpf_config/simulation_easy_swf.properties");
+				runsim(1, "kth_bpf_estimate_swf"+i, "kth_bpf_config/simulation_batch_priority_fair_estimate_swf.properties", "kth_bpf_config/simulation_easy_swf.properties");
 			}
 		}
 	}
 	
-	private static void runsim(int n, String config0, String config1, String appendix) {
+	private static void runsim(int n, String appendix, String ...configs) {
 		//StatisticalMathHelper.setUserAccepteableWaitTimeParameters(c1, c2);
 
-		SimulationInterface si = SimulationInterface.instance();
-
-		AVGWTLogger.resetLog();
-
-		for (int i = 0; i < n; i++) {
-			si.configure(config0);
-			si.simulate();
+		for (int i = 0; i < configs.length; i++) {
+			SimulationInterface si = SimulationInterface.instance();
+			
+			AVGWTLogger.resetLog();
+			
+			for (int j = 0; j < n; j++) {
+				si.configure(configs[i]);
+				si.simulate();
+			}
+			
+			SimulationInterface.destroy();
+			System.gc();
 		}
 
-		AVGWTLogger.resetLog();
-
-		for (int i = 0; i < n; i++) {
-			si.configure(config1);
-			si.simulate();
-		}
-		
 		try {
 			new File("avg_output/").renameTo(new File("avg_output_"+appendix));
 			new File("avg_output/").mkdir();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		SimulationInterface.destroy();
-		System.gc();
 	}
 }
