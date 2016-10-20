@@ -235,11 +235,14 @@ public class BATCH_PRIORITY_FAIR_ESTIMATE_Scheduler implements Scheduler {
 		final double t_req = job.get(Job.TIME_REQUESTED);
 		final double t_run = job.get(Job.RUN_TIME);
 		
-		ArrayList<Double> accuracyList = idToUserTimeAccuracySamplesList.get(userId);
-		accuracyList.remove(0);
-		accuracyList.add(t_run/t_req);
+		//exclude jobs that "failed" (t_run == 1)
+		if(t_run > 1) {
+			ArrayList<Double> accuracyList = idToUserTimeAccuracySamplesList.get(userId);
+			accuracyList.remove(0);
+			accuracyList.add(t_run/t_req);
 		
-		updateUserTimeAccuracy(userId);
+			updateUserTimeAccuracy(userId);
+		}
 	}
 	
 	private boolean isUserInQueue(long userId) {
