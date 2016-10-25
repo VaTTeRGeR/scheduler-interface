@@ -15,6 +15,7 @@ import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.logger.Logger;
 import de.dortmund.tu.wmsi.routine.WorkloadModelRoutine;
 import de.dortmund.tu.wmsi.routine.timing.RoutineTimingOnce;
+import de.dortmund.tu.wmsi.usermodel.model.BatchCreator;
 import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 import de.dortmund.tu.wmsi.util.JobSubmitComparator;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
@@ -90,6 +91,8 @@ public class AVGWTLogger implements Logger {
 			builder.append(String.format("%20s", "ABWT=1"));
 			builder.append(String.format("%20s", "ABWT>1"));
 			builder.append(String.format("%20s", "ABRSPT>1"));
+			builder.append(String.format("%20s", "AVG_IAT"));
+			builder.append(String.format("%20s", "MEDIAN_IAT"));
 			builder.append(String.format("%20s", "#B=1"));
 			builder.append(String.format("%20s", "#B>1"));
 			
@@ -221,8 +224,12 @@ public class AVGWTLogger implements Logger {
 								String.format("%20s", avgWTB1)+
 								String.format("%20s", avgWTBG1)+
 								String.format("%20s", avgRSPTBG1)+
-								String.format("%20s", numB1)+
-								String.format("%20s", numBG1)
+								String.format("%20s", BatchCreator.getAvgInterarrivalTime())+
+								String.format("%20s", BatchCreator.getMedianInterarrivalTime())+
+								String.format("%20s", BatchCreator.getBatchesEqualOne())+
+								String.format("%20s", BatchCreator.getBatchesGreaterOne())
+								//String.format("%20s", numB1)+
+								//String.format("%20s", numBG1)
 							);
 							
 							saveLog(swfPath);

@@ -58,7 +58,30 @@ public class StatisticalMathHelper {
 	    }
 	}
 
+	public static double lowerQuantile(double[] m) {
+		if(m == null || m.length == 0)
+			return 0;
+		
+	    int middle = m.length/2;
+	    if (m.length%2 == 1) {
+	    	int quantile = middle/2;
+	        return m[quantile];
+	    } else {
+	    	int quantile = (middle-1)/2;
+	        return m[quantile];
+	    }
+	}
+
 	public static long upperQuantile(long[] m) {
+		if(m == null || m.length == 0)
+			return 0;
+		
+	    int middle = m.length/2;
+    	int quantile = middle+(middle/2);
+        return m[quantile];
+	}
+
+	public static double upperQuantile(double[] m) {
 		if(m == null || m.length == 0)
 			return 0;
 		

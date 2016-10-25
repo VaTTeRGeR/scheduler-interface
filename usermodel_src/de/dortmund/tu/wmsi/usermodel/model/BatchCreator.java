@@ -1,5 +1,6 @@
 package de.dortmund.tu.wmsi.usermodel.model;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,11 +23,16 @@ public class BatchCreator {
 	
 	double interarrivalTimeMu;
 	double interarrivalTimeSigma;
+	
+	private static long batchesEqualOne;
+	private static long batchesGreaterOne;
+	private static ArrayList<Long> interarrivalTimes;
 
+	public static boolean enableGauss = true;
+	
 	public BatchCreator(User u) {
 		this.user = u;
 
-		//TODO MATH
 		this.jobcreator 			= u.getJobcreator(); 
 		this.batchSizeOne 			= u.getBatchSizeOne();
 		this.batchSizeMu 			= u.getBatchSizeMu();
@@ -35,7 +41,32 @@ public class BatchCreator {
 		this.interarrivalTimeSigma 	= u.getBatchSizeSigma();
 	}
 
-
+	public static void resetBatchStatistics() {
+		BatchCreator.batchesEqualOne = 0;
+		BatchCreator.batchesGreaterOne = 0;
+		BatchCreator.interarrivalTimes = new ArrayList<Long>();
+	}
+	
+	public static long getAvgInterarrivalTime() {
+		long sum = 0;
+		for (Long value : interarrivalTimes) {
+			sum += value;
+		}
+		return sum/interarrivalTimes.size();
+	}
+	
+	public static long getMedianInterarrivalTime() {
+		return interarrivalTimes.get(interarrivalTimes.size()/2);
+	}
+	
+	public static long getBatchesGreaterOne() {
+		return batchesGreaterOne;
+	}
+	
+	public static long getBatchesEqualOne() {
+		return batchesEqualOne;
+	}
+	
 	/**
 	 * Create a batch starting at t_start = 0
 	 * 
@@ -65,10 +96,17 @@ public class BatchCreator {
 		int batchsize = this.sampleBatchSize();
 		//System.out.println("User: " + user.getUserId() + " batchsize: " + batchsize);
 		
-		setGaussRuntime(j);
+		if(enableGauss) {
+			setGaussRuntime(j);
+		} else {
+    		setAccurateRuntime(j);
+   		}
 		
 		for (int i = 1; i < batchsize; i++) {
-			t_start += this.sampleInterArrivalTime();
+			long interArrivalTime = this.sampleInterArrivalTime();
+			t_start += interArrivalTime;
+			
+			interarrivalTimes.add(interArrivalTime);
 			
 			j = jobcreator.createJob();
 			j.set(Job.SUBMIT_TIME, t_start);
@@ -82,9 +120,21 @@ public class BatchCreator {
 			
 			//System.out.println("Add job to batch at time: " + j.getSubmitTime() + " with "+j.get(Job.RESOURCES_REQUESTED)+" resources");
 		}	
+		
+		if(batchsize > 1) {
+			batchesGreaterOne++;
+		} else {
+			batchesEqualOne++;
+		}
+		
 		return batch;
 	}
 
+	/**
+	 * 
+	 * Gauss distribution of runtimes
+	 * 
+	 * */
 	private void setGaussRuntime(Job job) {
 		double t_run = (double)job.get(Job.TIME_REQUESTED);
 		
@@ -100,6 +150,15 @@ public class BatchCreator {
 		job.set(Job.RUN_TIME, (long)gaussRandom);
 		/*job.set(Job.RUN_TIME, (long)(t_run/2d));
 		job.set(Job.TIME_REQUESTED, (long)(t_run/2d));*/
+	}
+
+	/**
+	 * 
+	 * Always accurate runtimes
+	 * 
+	 * */
+	private void setAccurateRuntime(Job job) {
+		job.set(Job.RUN_TIME, job.get(Job.TIME_REQUESTED));
 	}
 
 	/**
