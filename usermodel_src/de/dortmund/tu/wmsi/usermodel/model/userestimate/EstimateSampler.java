@@ -11,14 +11,13 @@ import de.dortmund.tu.wmsi.util.SWFFileUtil;
 public class EstimateSampler {
 	private int								numBins;
 	
-	private ArrayList<ArrayList<Long>>		runtimes; // [estimateIndex, runtimeIndex]
+	private ArrayList<ArrayList<Long>>		runtimeHits; // [estimateIndex, runtimeIndex]
 	private Map<Long, ArrayList<Long>>		estimateToRuntimes; 
 
 	private long							biggestTimeSeconds;
 	private double 							binSize;
 	
 	public EstimateSampler(String swfPath) {
-		
 		loadSwfData(swfPath);
 		build();
 	}
@@ -61,35 +60,53 @@ public class EstimateSampler {
 				if(estimateToRuntimes.containsKey(t_estimate)) {
 					runtimeList = estimateToRuntimes.get(t_estimate);
 					runtimeList.add(t_run);
-					System.out.println("("+t_estimate+":"+t_run+") added to existing List of Size "+runtimeList.size());
+					//System.out.println("("+t_estimate+":"+t_run+") added to existing List of Size "+runtimeList.size());
 				} else {
 					runtimeList = new ArrayList<Long>();
 					runtimeList.add(t_run);
 					estimateToRuntimes.put(t_estimate, runtimeList);
-					System.out.println("("+t_estimate+":"+t_run+") added to new List");
+					//System.out.println("("+t_estimate+":"+t_run+") added to new List");
 				}
 				
 			} else {
-				System.out.println("Job "+getValue(line, Job.JOB_ID)+" was not loaded, invalid values");
+				//System.out.println("Job "+getValue(line, Job.JOB_ID)+" was not loaded, invalid values");
 			}
 		}
 	}
 
 	private void build() {
-		final double biggestTimeHours = ((double)biggestTimeSeconds)/3600D;
-		numBins = (int)(biggestTimeHours + 0.5D);
-		binSize = biggestTimeSeconds/((double)numBins);
+		numBins = 32;
+		binSize = biggestTimeSeconds / ((double)numBins);
 		
-		runtimes = new ArrayList<ArrayList<Long>>(numBins);
+		runtimeHits = new ArrayList<ArrayList<Long>>(numBins);
+		
 		for (int i = 0; i < numBins; i++) {
-			runtimes.add(i, new ArrayList<Long>());
+			ArrayList<Long> runtimeHitList = new ArrayList<Long>(numBins);
+			for (int j = 0; j < numBins; j++) {
+				runtimeHitList.add(j, 1L);
+				System.out.println("Created bin ["+i+"|"+j+"]");
+			}
+			runtimeHits.add(i, runtimeHitList);
 		}
-
-		System.out.println("Created "+numBins+" bins with a size of "+binSize+".");
+	
+		for(Long estimate : estimateToRuntimes.keySet()) {
+			System.out.println("Sorting in estimate "+estimate+".");
+			ArrayList<Long> runtimesOfEstimate = estimateToRuntimes.get(estimate);
+			for (Long runtime : runtimesOfEstimate) {
+				System.out.println("Sorting in runtime "+runtime+" for estimate "+estimate+" into bin ["+getBinIndex(estimate)+"|"+getBinIndex(runtime)+"]");
+				ArrayList<Long> runtimeHitRates = runtimeHits.get(getBinIndex(estimate));
+				Long runTimeHitRateNew = runtimeHitRates.get(getBinIndex(runtime));
+				runtimeHitRates.set(getBinIndex(runtime), runTimeHitRateNew + 1L);
+			}
+		}
 	}
 	
-	private int secondsToBinIndex(long time) {
-		return (int)( ((double)time)/((double)binSize) + 0.5D);
+	private int getBinIndex(long seconds) {
+		int binId = (int)(seconds / binSize);
+		binId = Math.max(0, binId);
+		binId = Math.min(numBins - 1, binId);
+		
+		return binId;
 	}
 
 	private static long getValue(String[] line, int index) {
