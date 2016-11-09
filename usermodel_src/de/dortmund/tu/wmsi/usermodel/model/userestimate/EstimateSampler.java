@@ -186,7 +186,9 @@ public class EstimateSampler {
 		System.out.println();
 	}
 	
-	public int randomEstimateByRuntimeBin(int runtimeBin) {
+	public long randomEstimateByRuntime(long seconds) {
+		int runtimeBin = getBinIndex(seconds);
+		
 		double rand = Math.random();
 		double sumProbabilityOld = 0;
 		double sumProbabilityNew = 0;
@@ -201,15 +203,28 @@ public class EstimateSampler {
 
 			//System.out.println("Probability added: "+(sumProbabilityNew - sumProbabilityOld));
 			//System.out.println("Probability new: "+sumProbabilityNew);
-
 			
 			if(sumProbabilityOld <= rand && sumProbabilityNew >= rand) {
-				return i;
+				return (long)(i*binSize + binSize/2);
 			}
 			
 			sumProbabilityOld = sumProbabilityNew;
 		}
-		return numBins;
+		return biggestTimeSeconds;
+	}
+	
+	public long averageRuntimeByEstimate(long seconds) {
+		int estimateBin = getBinIndex(seconds);
+		
+		double estimate = 0;
+		
+		for (int i = estimateBin; i < numBins; i++) {
+			double hitsRelative = estimateToHitBins[estimateBin][i];
+			double hitsAbsolute = estimateTotalHits[estimateBin];
+
+			estimate += (hitsRelative/hitsAbsolute) * binSize * (i + 0.5f);
+		}
+		return (long)estimate;
 	}
 	
 	private int getBinIndex(long seconds) {

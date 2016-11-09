@@ -113,7 +113,7 @@ public class BatchCreator {
 			j.set(Job.RESOURCES_REQUESTED, CORES);
 			j.set(Job.RESOURCES_ALLOCATED, CORES);
 			j.set(Job.USER_ID, user.getUserId());
-			setGaussRuntime(j);
+			setGaussRuntime(j); //TODO change to estimate sampler
 			
 			if(j.get(Job.RUN_TIME) >= 1 && j.get(Job.RUN_TIME) <= j.get(Job.TIME_REQUESTED))
 				batch.add(j);
