@@ -5,7 +5,7 @@ import de.dortmund.tu.wmsi.usermodel.model.userestimate.EstimateSampler;
 public class EstimateSamplerTest {
 	public static void main(String[] args) {
 		String swfPath = "swf_input/cea_curie.swf";
-		EstimateSampler sampler = new EstimateSampler(swfPath);
+		EstimateSampler sampler = new EstimateSampler(swfPath, 32);
 		
 		/*System.out.println();
 		System.out.println("Selecting 50 estimates for runtime-bin 31");

@@ -8,6 +8,7 @@ import org.apache.commons.math3.distribution.LogisticDistribution;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.job.Job;
+import de.dortmund.tu.wmsi.usermodel.model.userestimate.EstimateSampler;
 import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 
 public class BatchCreator {
@@ -28,7 +29,10 @@ public class BatchCreator {
 	private static long batchesGreaterOne;
 	private static ArrayList<Long> interarrivalTimes;
 
-	public static boolean enableGauss = true;
+	public static EstimateSampler estimateSampler;
+	
+	public static boolean enableGauss = false;
+	public static boolean enableEstimateSampler = false;
 	
 	public BatchCreator(User u) {
 		this.user = u;
@@ -98,6 +102,8 @@ public class BatchCreator {
 		
 		if(enableGauss) {
 			setGaussRuntime(j);
+		} else if(enableEstimateSampler){
+			setEstimateSamplerRuntime(j);
 		} else {
     		setAccurateRuntime(j);
    		}
@@ -113,7 +119,13 @@ public class BatchCreator {
 			j.set(Job.RESOURCES_REQUESTED, CORES);
 			j.set(Job.RESOURCES_ALLOCATED, CORES);
 			j.set(Job.USER_ID, user.getUserId());
-			setGaussRuntime(j); //TODO change to estimate sampler
+			if(enableGauss) {
+				setGaussRuntime(j);
+			} else if(enableEstimateSampler) {
+				setEstimateSamplerRuntime(j);
+			} else {
+	    		setAccurateRuntime(j);
+	   		}
 			
 			if(j.get(Job.RUN_TIME) >= 1 && j.get(Job.RUN_TIME) <= j.get(Job.TIME_REQUESTED))
 				batch.add(j);
@@ -128,6 +140,18 @@ public class BatchCreator {
 		}
 		
 		return batch;
+	}
+
+	/**
+	 * 
+	 * Gauss distribution of runtimes
+	 * 
+	 * */
+	private void setEstimateSamplerRuntime(Job job) {
+		long t_run = job.get(Job.RUN_TIME);
+		long t_estimate = estimateSampler.randomEstimateByRuntime(t_run);
+		//System.out.println(t_run+" -> "+t_estimate);
+		job.set(Job.TIME_REQUESTED, t_estimate);
 	}
 
 	/**

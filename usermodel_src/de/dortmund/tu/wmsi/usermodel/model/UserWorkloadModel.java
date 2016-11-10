@@ -7,15 +7,28 @@ import java.util.concurrent.TimeUnit;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.model.WorkloadModel;
+import de.dortmund.tu.wmsi.usermodel.model.userestimate.EstimateSampler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
 public class UserWorkloadModel implements WorkloadModel{
 	
+	public static String swfPath;
 	List<User> users;
 	
 	@Override
 	public void configure(String configPath) {
 		PropertiesHandler properties = new PropertiesHandler(configPath);
+		
+		if(properties.has("model.swf_path")) {
+			swfPath = properties.getString("model.swf_path", null);
+			BatchCreator.estimateSampler = new EstimateSampler(swfPath, 32);
+
+			BatchCreator.enableEstimateSampler = true;
+			BatchCreator.enableGauss = false;
+		} else {
+			BatchCreator.enableEstimateSampler = false;
+			BatchCreator.enableGauss = true;
+		}
 		
 		long weeks = properties.getLong("simulation.weeks", 0);
 		
