@@ -21,7 +21,7 @@ public class UserWorkloadModel implements WorkloadModel{
 		
 		if(properties.has("model.swf_path")) {
 			swfPath = properties.getString("model.swf_path", null);
-			BatchCreator.estimateSampler = new EstimateSampler(swfPath, 32);
+			BatchCreator.estimateSampler = new EstimateSampler(swfPath, 32, 0.9);
 
 			BatchCreator.enableEstimateSampler = true;
 			BatchCreator.enableGauss = false;

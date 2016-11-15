@@ -50,7 +50,7 @@ public class EASY_ESTIMATE_SAMPLED_Scheduler implements Scheduler {
 		
 		setMaxResources(properties.getLong("resources", Long.MAX_VALUE));
 
-		estimateSampler = new EstimateSampler(properties.getString("model.swf_path", null), 32);
+		estimateSampler = new EstimateSampler(properties.getString("model.swf_path", null), 32, 0.95);
 	}
 	
 	public void setMaxResources(long res_max) {
