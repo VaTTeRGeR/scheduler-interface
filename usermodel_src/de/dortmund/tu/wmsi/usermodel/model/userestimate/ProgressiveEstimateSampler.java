@@ -1,18 +1,10 @@
 package de.dortmund.tu.wmsi.usermodel.model.userestimate;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
-import de.dortmund.tu.wmsi.job.Job;
-import de.dortmund.tu.wmsi.util.SWFFileUtil;
-
-public class EstimateSampler {
-	private double 							scopeScale;
-
+public class ProgressiveEstimateSampler {
 	private int								numBins;
 	private double 							binSize;
 	private long							biggestTimeSeconds;
@@ -24,63 +16,41 @@ public class EstimateSampler {
 	private Map<Long, ArrayList<Long>>		estimateToRuntimeSamples;	// [estimate] -> runtimes of that estimate
 
 	
-	public EstimateSampler(String swfPath, int numBins, double scopeScale) {
+	public ProgressiveEstimateSampler(int numBins) {
 		this.numBins = numBins;
-		this.scopeScale = scopeScale;
-		loadSwfData(swfPath);
-		build();
+		binSize = 0;
+		biggestTimeSeconds = 0;
+		estimateToRuntimeSamples = new HashMap<Long, ArrayList<Long>>();
 	}
 	
-	private void loadSwfData(String swfPath) {
-		estimateToRuntimeSamples = new HashMap<Long, ArrayList<Long>>();
-		
-		if(swfPath == null || !(new File(swfPath).exists())) {
-			throw new IllegalStateException("SWF File "+swfPath+" does not exist.");
+	public void addJobSample(long t_run, long t_estimate) {
+	
+		if(estimateToRuntimeSamples.containsKey(t_estimate)) {
+			
+			ArrayList<Long> runtimesList = estimateToRuntimeSamples.get(t_estimate);
+			runtimesList.add(t_run);
+			
+		} else {
+			
+			ArrayList<Long> runtimesList = new ArrayList<Long>();
+			runtimesList.add(t_run);
+			
+			estimateToRuntimeSamples.put(t_estimate, runtimesList);
 		}
 		
-		String[] lines = SWFFileUtil.loadLines(new File(swfPath));
-		
-		LinkedList<Long> timesList = new LinkedList<Long>();
-		
-		for (int i = 0; i < lines.length; i++) {
+		if(Math.max(t_run, t_estimate) > biggestTimeSeconds) {
 			
-			String[] line = lines[i].split("\\s+");
+			biggestTimeSeconds = Math.max(t_run, t_estimate);
 			
-			if(getValue(line, Job.TIME_REQUESTED)		!= -1 &&
-			   getValue(line, Job.RUN_TIME)				!= -1
-			) {
-				long t_run = getValue(line, Job.RUN_TIME);
-				long t_estimate = getValue(line, Job.TIME_REQUESTED);
-
-				/*if(t_run > biggestTimeSeconds) {
-					biggestTimeSeconds = t_run;
-					System.out.println("Biggest Value is now "+biggestTimeSeconds);
-				}
-				
-				if(t_estimate > biggestTimeSeconds) {
-					biggestTimeSeconds = t_estimate;
-					System.out.println("Biggest Value is now "+biggestTimeSeconds);
-				}*/
-				
-				timesList.add(Math.max(t_run, t_estimate));
-
-				ArrayList<Long> runtimeList = null;
-				if(estimateToRuntimeSamples.containsKey(t_estimate)) {
-					runtimeList = estimateToRuntimeSamples.get(t_estimate);
-					runtimeList.add(t_run);
-					//System.out.println("("+t_estimate+":"+t_run+") added to existing List of Size "+runtimeList.size());
-				} else {
-					runtimeList = new ArrayList<Long>();
-					runtimeList.add(t_run);
-					estimateToRuntimeSamples.put(t_estimate, runtimeList);
-					//System.out.println("("+t_estimate+":"+t_run+") added to new List");
-				}
-			} else {
-				//System.out.println("Job "+getValue(line, Job.JOB_ID)+" was not loaded, invalid values");
-			}
+			build();
+			
+		} else {
+			
+			estimateToHitBins[getBinIndex(t_estimate)][getBinIndex(t_run)]++;
+			
+			estimateTotalHits[getBinIndex(t_estimate)]++;
+			runtimeTotalHits[getBinIndex(t_run)]++;
 		}
-		Collections.sort(timesList);
-		biggestTimeSeconds = timesList.get((int)(scopeScale * timesList.size()));
 	}
 
 	private void build() {
@@ -132,63 +102,63 @@ public class EstimateSampler {
 			}
 		}
 		
-		//long delta = 0;
+		/*long delta = 0;
 		
 		for(int rIndex = numBins - 1; rIndex >= 0; rIndex--) {
-			//double runtimeHits = runtimeTotalHits[rIndex];
-			//System.out.println(new DecimalFormat("000000").format(runtimeHits));
+			double runtimeHits = runtimeTotalHits[rIndex];
+			System.out.println(new DecimalFormat("000000").format(runtimeHits));
 			
-			//delta+= runtimeHits;
+			delta+= runtimeHits;
 		}
 
-		//System.out.print("       ");
+		System.out.print("       ");
 		
 		for(int eIndex = 0; eIndex < numBins; eIndex++) {
-			//double estimateHits = estimateTotalHits[eIndex];
-			//System.out.print(new DecimalFormat("000000").format(estimateHits));
-			//System.out.print("  ");
-			//delta-= estimateHits;
+			double estimateHits = estimateTotalHits[eIndex];
+			System.out.print(new DecimalFormat("000000").format(estimateHits));
+			System.out.print("  ");
+			delta-= estimateHits;
 		}
-		//System.out.println();
+		System.out.println();
 
-		//System.out.println();
-		//System.out.println("delta: "+delta);
-		//System.out.println();
+		System.out.println();
+		System.out.println("delta: "+delta);
+		System.out.println();
 
 		for(int rIndex = numBins - 1; rIndex >= 0; rIndex--) {
 			for(int eIndex = 0; eIndex < numBins; eIndex++) {
-				//double hitsOfRuntimeInEstimate = estimateToHitBins[eIndex][rIndex];
-				//System.out.print(new DecimalFormat("000000").format(hitsOfRuntimeInEstimate));
-				//System.out.print("  ");
+				double hitsOfRuntimeInEstimate = estimateToHitBins[eIndex][rIndex];
+				System.out.print(new DecimalFormat("000000").format(hitsOfRuntimeInEstimate));
+				System.out.print("  ");
 			}
-			//System.out.println();
-		}
-
-		//System.out.println();
-
-		for(int rIndex = numBins - 1; rIndex >= 0; rIndex--) {
-			for(int eIndex = 0; eIndex < numBins; eIndex++) {
-				//double hitsOfRuntimeInEstimate = estimateToHitBins[eIndex][rIndex];
-				//double totalHitsOfEstimate = estimateTotalHits[eIndex];
-				//System.out.print(new DecimalFormat("0.0000").format(hitsOfRuntimeInEstimate/totalHitsOfEstimate));
-				//System.out.print("  ");
-			}
-			//System.out.println();
+			System.out.println();
 		}
 
 		System.out.println();
 
 		for(int rIndex = numBins - 1; rIndex >= 0; rIndex--) {
 			for(int eIndex = 0; eIndex < numBins; eIndex++) {
-				//double hitsOfRuntimeInEstimate = estimateToHitBins[eIndex][rIndex];
-				//double totalHitsOfRuntime = runtimeTotalHits[rIndex];
-				//System.out.print(new DecimalFormat("0.0000").format(hitsOfRuntimeInEstimate/totalHitsOfRuntime));
-				//System.out.print("  ");
+				double hitsOfRuntimeInEstimate = estimateToHitBins[eIndex][rIndex];
+				double totalHitsOfEstimate = estimateTotalHits[eIndex];
+				System.out.print(new DecimalFormat("0.0000").format(hitsOfRuntimeInEstimate/totalHitsOfEstimate));
+				System.out.print("  ");
 			}
-			//System.out.println();
+			System.out.println();
 		}
 
-		//System.out.println();
+		System.out.println();
+
+		for(int rIndex = numBins - 1; rIndex >= 0; rIndex--) {
+			for(int eIndex = 0; eIndex < numBins; eIndex++) {
+				double hitsOfRuntimeInEstimate = estimateToHitBins[eIndex][rIndex];
+				double totalHitsOfRuntime = runtimeTotalHits[rIndex];
+				System.out.print(new DecimalFormat("0.0000").format(hitsOfRuntimeInEstimate/totalHitsOfRuntime));
+				System.out.print("  ");
+			}
+			System.out.println();
+		}
+
+		System.out.println();*/
 	}
 	
 	public long randomEstimateByRuntime(long seconds) {
@@ -221,7 +191,7 @@ public class EstimateSampler {
 	public long averageRuntimeByEstimate(long seconds) {
 		int estimateBinIndex = getBinIndex(seconds);
 		
-		if(estimateTotalHits[estimateBinIndex] <= 1) {
+		if(estimateTotalHits == null || estimateTotalHits == null || runtimeTotalHits == null || estimateTotalHits[estimateBinIndex] <= 1) {
 			return seconds;
 		}
 		
@@ -243,9 +213,5 @@ public class EstimateSampler {
 		binId = Math.min(numBins - 1, binId);
 		
 		return binId;
-	}
-
-	private static long getValue(String[] line, int index) {
-		return Long.valueOf((line[index]));
 	}
 }

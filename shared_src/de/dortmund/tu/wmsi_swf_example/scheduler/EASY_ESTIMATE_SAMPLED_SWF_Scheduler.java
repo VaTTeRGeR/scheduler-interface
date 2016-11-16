@@ -10,10 +10,9 @@ import de.dortmund.tu.wmsi.scheduler.Schedule;
 import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
 import de.dortmund.tu.wmsi.usermodel.model.userestimate.EstimateSampler;
-import de.dortmund.tu.wmsi.usermodel.model.userestimate.ProgressiveEstimateSampler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
-public class EASY_ESTIMATE_SAMPLED_Scheduler implements Scheduler {
+public class EASY_ESTIMATE_SAMPLED_SWF_Scheduler implements Scheduler {
 
 	private LinkedList<Job> queue;
 	
@@ -23,7 +22,7 @@ public class EASY_ESTIMATE_SAMPLED_Scheduler implements Scheduler {
 	private long reservation_begin;
 	private Job reservation_job;
 
-	private ProgressiveEstimateSampler estimateSampler;
+	private EstimateSampler estimateSampler;
 	
 	@Override
 	public void initialize() {
@@ -51,7 +50,7 @@ public class EASY_ESTIMATE_SAMPLED_Scheduler implements Scheduler {
 		
 		setMaxResources(properties.getLong("resources", Long.MAX_VALUE));
 
-		estimateSampler = new ProgressiveEstimateSampler(32);
+		estimateSampler = new EstimateSampler(properties.getString("model.swf_path", null), 32, 0.95);
 	}
 	
 	public void setMaxResources(long res_max) {
@@ -105,8 +104,6 @@ public class EASY_ESTIMATE_SAMPLED_Scheduler implements Scheduler {
 			JobFinishEntry entry = schedule.pollNextFinishedJobEntry(t_target);
 
 			SimulationInterface.instance().submitEvent(new JobFinishedEvent(entry.t_end, entry.job));
-			
-			estimateSampler.addJobSample(entry.job.get(Job.RUN_TIME), entry.job.get(Job.TIME_REQUESTED));
 			
 			return entry.t_end;
 		}
