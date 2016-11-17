@@ -4,13 +4,15 @@ import java.io.File;
 
 import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.usermodel.model.BatchCreator;
+import de.dortmund.tu.wmsi.usermodel.model.userestimate.EstimateSampler;
+import de.dortmund.tu.wmsi.usermodel.model.userestimate.ProgressiveEstimateSampler;
 import de.dortmund.tu.wmsi_swf_example.logger.AVGWTLogger;
 
 public class UserModelMain {
 
 	private static final boolean doAVG = true;
 	private static final boolean doSWF = false;
-	private static final int numSimAVG = 8;
+	private static final int numSimAVG = 1;
 	private static final int numSimSWF = 5;
 	
 	public static void main(String[] args) {
@@ -75,9 +77,14 @@ public class UserModelMain {
 			
 			for (int j = 0; j < n; j++) {
 				BatchCreator.resetBatchStatistics();
+				
 				si.configure(configs[i]);
 				si.simulate();
+
+				EstimateSampler.saveEstimateMatrix();
+				ProgressiveEstimateSampler.saveEstimateMatrix();
 			}
+			
 			
 			SimulationInterface.destroy();
 			System.gc();

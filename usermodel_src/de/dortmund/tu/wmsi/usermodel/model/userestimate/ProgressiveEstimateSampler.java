@@ -1,11 +1,14 @@
 package de.dortmund.tu.wmsi.usermodel.model.userestimate;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ProgressiveEstimateSampler {
-	private int								numBins;
+	private final int						numBins = 64;
 	private double 							binSize;
 	private long							biggestTimeSeconds;
 	
@@ -14,10 +17,10 @@ public class ProgressiveEstimateSampler {
 	private long[]							runtimeTotalHits;			// [estimateIndex]
 	
 	private Map<Long, ArrayList<Long>>		estimateToRuntimeSamples;	// [estimate] -> runtimes of that estimate
+	private static long[][]					estimateToHitBinsStatic = null;
 
 	
-	public ProgressiveEstimateSampler(int numBins) {
-		this.numBins = numBins;
+	public ProgressiveEstimateSampler() {
 		binSize = 0;
 		biggestTimeSeconds = 0;
 		estimateToRuntimeSamples = new HashMap<Long, ArrayList<Long>>();
@@ -47,7 +50,6 @@ public class ProgressiveEstimateSampler {
 		} else {
 			
 			estimateToHitBins[getBinIndex(t_estimate)][getBinIndex(t_run)]++;
-			
 			estimateTotalHits[getBinIndex(t_estimate)]++;
 			runtimeTotalHits[getBinIndex(t_run)]++;
 		}
@@ -57,6 +59,9 @@ public class ProgressiveEstimateSampler {
 		binSize = biggestTimeSeconds / ((long)numBins);
 		
 		estimateToHitBins = new long[numBins][numBins];
+		
+		estimateToHitBinsStatic = estimateToHitBins;
+		
 		estimateTotalHits = new long[numBins];
 		runtimeTotalHits = new long[numBins];
 		
@@ -213,5 +218,35 @@ public class ProgressiveEstimateSampler {
 		binId = Math.min(numBins - 1, binId);
 		
 		return binId;
+	}
+
+	public static void saveEstimateMatrix() {
+		if(estimateToHitBinsStatic == null) return;
+		
+		String folderName = "matrix_output/";
+		String fileName = "pes_swf.matrix";
+		
+		if(!new File(folderName).exists()) new File(folderName).mkdir();
+		
+		if(new File(folderName+fileName).exists()) new File(folderName+fileName).delete();
+		
+		System.out.println("["+estimateToHitBinsStatic.length+"]["+estimateToHitBinsStatic[0].length+"]");
+		
+		try {
+			PrintWriter printer = new PrintWriter(folderName+fileName);
+			for (int i = 0; i < estimateToHitBinsStatic.length; i++) {
+				for (int j = 0; j < estimateToHitBinsStatic[i].length; j++) {
+					printer.print(estimateToHitBinsStatic[i][estimateToHitBinsStatic.length - 1 - j]);
+					printer.print("\t");
+				}
+				printer.println();
+			}
+			printer.flush();
+			printer.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		estimateToHitBinsStatic = null;
 	}
 }

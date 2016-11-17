@@ -9,7 +9,6 @@ import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.scheduler.Schedule;
 import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
-import de.dortmund.tu.wmsi.usermodel.model.userestimate.EstimateSampler;
 import de.dortmund.tu.wmsi.usermodel.model.userestimate.ProgressiveEstimateSampler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 
@@ -51,7 +50,7 @@ public class EASY_ESTIMATE_SAMPLED_Scheduler implements Scheduler {
 		
 		setMaxResources(properties.getLong("resources", Long.MAX_VALUE));
 
-		estimateSampler = new ProgressiveEstimateSampler(32);
+		estimateSampler = new ProgressiveEstimateSampler();
 	}
 	
 	public void setMaxResources(long res_max) {

@@ -1,6 +1,8 @@
 package de.dortmund.tu.wmsi.usermodel.model.userestimate;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,7 +15,7 @@ import de.dortmund.tu.wmsi.util.SWFFileUtil;
 public class EstimateSampler {
 	private double 							scopeScale;
 
-	private int								numBins;
+	private final int						numBins = 64;
 	private double 							binSize;
 	private long							biggestTimeSeconds;
 	
@@ -23,10 +25,16 @@ public class EstimateSampler {
 	
 	private Map<Long, ArrayList<Long>>		estimateToRuntimeSamples;	// [estimate] -> runtimes of that estimate
 
+	private boolean							canOutput = false;
+
+	private static long[][]					estimateToHitBinsStatic = null;
 	
-	public EstimateSampler(String swfPath, int numBins, double scopeScale) {
-		this.numBins = numBins;
+	public EstimateSampler(String swfPath, double scopeScale, boolean canOutput) {
 		this.scopeScale = scopeScale;
+		this.canOutput = canOutput;
+		
+		System.out.println("ES-CONSTR: "+this.numBins);
+		
 		loadSwfData(swfPath);
 		build();
 	}
@@ -86,7 +94,14 @@ public class EstimateSampler {
 	private void build() {
 		binSize = biggestTimeSeconds / ((long)numBins);
 		
+		System.out.println("ES-BUILD: "+numBins);
+		
 		estimateToHitBins = new long[numBins][numBins];
+		
+		if(canOutput) {
+			estimateToHitBinsStatic = estimateToHitBins;
+		}
+		
 		estimateTotalHits = new long[numBins];
 		runtimeTotalHits = new long[numBins];
 		
@@ -247,5 +262,35 @@ public class EstimateSampler {
 
 	private static long getValue(String[] line, int index) {
 		return Long.valueOf((line[index]));
+	}
+
+	public static void saveEstimateMatrix() {
+		if(estimateToHitBinsStatic == null) return;
+		
+		String folderName = "matrix_output/";
+		String fileName = "es_swf.matrix";
+		
+		if(!new File(folderName).exists()) new File(folderName).mkdir();
+		
+		if(new File(folderName+fileName).exists()) new File(folderName+fileName).delete();
+		
+		System.out.println("["+estimateToHitBinsStatic.length+"]["+estimateToHitBinsStatic[0].length+"]");
+		
+		try {
+			PrintWriter printer = new PrintWriter(folderName+fileName);
+			for (int i = 0; i < estimateToHitBinsStatic.length; i++) {
+				for (int j = 0; j < estimateToHitBinsStatic[i].length; j++) {
+					printer.print(estimateToHitBinsStatic[i][estimateToHitBinsStatic.length - 1 - j]);
+					printer.print("\t");
+				}
+				printer.println();
+			}
+			printer.flush();
+			printer.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		estimateToHitBinsStatic = null;
 	}
 }
