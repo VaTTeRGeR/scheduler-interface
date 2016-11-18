@@ -28,6 +28,10 @@ public class ProgressiveEstimateSampler {
 	
 	public void addJobSample(long t_run, long t_estimate) {
 	
+		//System.out.println(t_run+"/"+t_estimate);
+		
+		if(t_run>t_estimate) throw new IllegalStateException("runtime shouldn't be bigger than the estimate!" + t_run + "/" + t_estimate);
+		
 		if(estimateToRuntimeSamples.containsKey(t_estimate)) {
 			
 			ArrayList<Long> runtimesList = estimateToRuntimeSamples.get(t_estimate);
@@ -185,12 +189,12 @@ public class ProgressiveEstimateSampler {
 			//System.out.println("Probability new: "+sumProbabilityNew);
 			
 			if(sumProbabilityOld <= rand && sumProbabilityNew >= rand) {
-				return (long)(i*binSize + binSize/2);
+				return Math.max((long)(i*binSize + binSize/2), seconds);
 			}
 			
 			sumProbabilityOld = sumProbabilityNew;
 		}
-		return biggestTimeSeconds;
+		return Math.max(biggestTimeSeconds, seconds);
 	}
 	
 	public long averageRuntimeByEstimate(long seconds) {
@@ -236,8 +240,12 @@ public class ProgressiveEstimateSampler {
 			PrintWriter printer = new PrintWriter(folderName+fileName);
 			for (int i = 0; i < estimateToHitBinsStatic.length; i++) {
 				for (int j = 0; j < estimateToHitBinsStatic[i].length; j++) {
-					printer.print(estimateToHitBinsStatic[i][estimateToHitBinsStatic.length - 1 - j]);
+					long value = estimateToHitBinsStatic[i][estimateToHitBinsStatic.length - 1 - j];
+					printer.print(value);
 					printer.print("\t");
+					if(value < 1000) {
+						printer.print("\t");
+					} 
 				}
 				printer.println();
 			}

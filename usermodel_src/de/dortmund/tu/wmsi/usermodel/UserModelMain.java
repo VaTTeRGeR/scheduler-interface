@@ -46,9 +46,10 @@ public class UserModelMain {
 					//"ctc_bpf_config/simulation_batch_priority_fair_estimate_bfo_avg.properties",
 					//"ctc_bpf_config/simulation_batch_priority_fair_avg.properties",
 					"ctc_es_config/simulation_easy_es_avg.properties",
-					"ctc_es_config/simulation_easy_es_swf_avg.properties",
-					"ctc_es_config/simulation_easy_estimate_avg.properties",
-					"ctc_es_config/simulation_easy_avg.properties");
+					"ctc_es_config/simulation_easy_es_swf_avg.properties"//,
+					//"ctc_es_config/simulation_easy_estimate_avg.properties",
+					//"ctc_es_config/simulation_easy_avg.properties"
+					);
 			
 //			runsim(numSimAVG, "kth_avg",
 //					"kth_bpf_config/simulation_batch_priority_fair_estimate_avg.properties",
