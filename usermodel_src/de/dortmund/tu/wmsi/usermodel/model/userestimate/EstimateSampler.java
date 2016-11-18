@@ -28,6 +28,7 @@ public class EstimateSampler {
 	private boolean							canOutput = false;
 
 	private static long[][]					estimateToHitBinsStatic = null;
+	private static double					binSizeStatic = -1;
 	
 	public EstimateSampler(String swfPath, double scopeScale, boolean canOutput) {
 		this.scopeScale = scopeScale;
@@ -100,6 +101,7 @@ public class EstimateSampler {
 		
 		if(canOutput) {
 			estimateToHitBinsStatic = estimateToHitBins;
+			binSizeStatic = binSize;
 		}
 		
 		estimateTotalHits = new long[numBins];
@@ -275,9 +277,15 @@ public class EstimateSampler {
 		if(new File(folderName+fileName).exists()) new File(folderName+fileName).delete();
 		
 		System.out.println("["+estimateToHitBinsStatic.length+"]["+estimateToHitBinsStatic[0].length+"]");
+
 		
 		try {
 			PrintWriter printer = new PrintWriter(folderName+fileName);
+			
+			printer.println("%binsize--->");
+			printer.println(binSizeStatic);
+			printer.println("%--->binsize");
+			
 			for (int i = 0; i < estimateToHitBinsStatic.length; i++) {
 				for (int j = 0; j < estimateToHitBinsStatic[i].length; j++) {
 					long value = estimateToHitBinsStatic[i][estimateToHitBinsStatic.length - 1 - j];
