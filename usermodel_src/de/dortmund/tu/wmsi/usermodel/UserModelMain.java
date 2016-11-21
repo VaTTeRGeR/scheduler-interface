@@ -16,6 +16,10 @@ public class UserModelMain {
 	private static final int numSimSWF = 5;
 	
 	public static void main(String[] args) {
+		if(!new File("avg_output/").exists()) {
+			new File("avg_output/").mkdir();
+		}
+		
 		if(doAVG) {
 //			runsim(numSimAVG, "mira_all_avg",
 //					"mira_bpf_config/simulation_batch_priority_fair_estimate_avg.properties",
