@@ -14,7 +14,7 @@ public class UserModelOld {
 			new File("avg_output/").mkdir();
 		}
 		
-		final int RUNS = 10;
+		final int RUNS = 15;
 		
 		runsim(RUNS , "mira_abs_overtime_easy",
 				"usermodel_config/simulation_easy_avg.properties",
@@ -24,9 +24,9 @@ public class UserModelOld {
 	}
 	
 	private static void runsim(int n, String appendix, String ...configs) {
-		//StatisticalMathHelper.setUserAccepteableWaitTimeParameters(1.70, 29.5);
-		StatisticalMathHelper.setUserAccepteableWaitTimeParameters(2.28, 215.75);
-		//StatisticalMathHelper.setUserAccepteableWaitTimeParameters(1.14, -166.19);
+		//StatisticalMathHelper.setUserAccepteableWaitTimeParameters(1.70, 29.5 * 60);
+		StatisticalMathHelper.setUserAccepteableWaitTimeParameters(2.28, 215.75 * 60);
+		//StatisticalMathHelper.setUserAccepteableWaitTimeParameters(1.14, -166.19 * 60);
 
 		for (int i = 0; i < configs.length; i++) {
 			SimulationInterface si = SimulationInterface.instance();

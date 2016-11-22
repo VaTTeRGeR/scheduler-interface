@@ -37,6 +37,9 @@ public class AVGWTLogger implements Logger {
 	
 	private long t_threshold = 20*60;
 	
+	private long num_jobs_finished = 0;
+	private long num_jobs_finished_before_deadline = 0;
+	
 	private static LinkedList<String> log = new LinkedList<String>();
 
 	private PropertiesHandler properties = null;
@@ -55,6 +58,7 @@ public class AVGWTLogger implements Logger {
 		userids = new ArrayList<Long>(512);
 		waitTimes = new ArrayList<Long>(512000);
 		t_threshold = 20*60;
+		num_jobs_finished = 0;
 	}
 	
 	@Override
@@ -95,6 +99,7 @@ public class AVGWTLogger implements Logger {
 			builder.append(String.format("%20s", "MEDIAN_IAT"));
 			builder.append(String.format("%20s", "#B=1"));
 			builder.append(String.format("%20s", "#B>1"));
+			builder.append(String.format("%20s", "#%_BEF_DEDL"));
 			
 			log.add(builder.toString());
 		}
@@ -195,6 +200,9 @@ public class AVGWTLogger implements Logger {
 							long avgRSPTBG1 = sumBG1RESPONSE/numBG1; //AVG BATCH RESPONSE TIME>1
 							
 							double tp = ((double)(throughput/t_simulated))/(double)max_resources;
+							
+							double finished_before_deadline_prc = ((double)num_jobs_finished_before_deadline)/((double)num_jobs_finished);
+							
 							DecimalFormatSymbols dfs = new DecimalFormatSymbols();
 							dfs.setDecimalSeparator('.');
 							log.add(String.format("%20s", avgWaitTime)+
@@ -227,7 +235,8 @@ public class AVGWTLogger implements Logger {
 								String.format("%20s", BatchCreator.getAvgInterarrivalTime())+
 								String.format("%20s", BatchCreator.getMedianInterarrivalTime())+
 								String.format("%20s", BatchCreator.getBatchesEqualOne())+
-								String.format("%20s", BatchCreator.getBatchesGreaterOne())
+								String.format("%20s", BatchCreator.getBatchesGreaterOne())+
+								String.format("%20s", new DecimalFormat("0.000", dfs).format(finished_before_deadline_prc))
 								//String.format("%20s", numB1)+
 								//String.format("%20s", numBG1)
 							);
@@ -287,6 +296,11 @@ public class AVGWTLogger implements Logger {
 		if(t_last_submit <= job.get(Job.SUBMIT_TIME)) {
 			t_last_submit = job.get(Job.SUBMIT_TIME);
 			t_last_finish = job.get(Job.SUBMIT_TIME)+job.get(Job.WAIT_TIME)+job.get(Job.RUN_TIME);
+		}
+		
+		num_jobs_finished++;
+		if(StatisticalMathHelper.userAccepteableWaitTime(job.get(Job.TIME_REQUESTED)) >= job.get(Job.WAIT_TIME)) {
+			num_jobs_finished_before_deadline++;
 		}
 	}
 	
