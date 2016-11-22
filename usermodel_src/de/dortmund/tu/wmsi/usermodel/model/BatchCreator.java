@@ -31,7 +31,7 @@ public class BatchCreator {
 
 	public static EstimateSampler estimateSampler;
 	
-	public static boolean enableGauss = false;
+	public static boolean enableGauss = true;
 	public static boolean enableEstimateSampler = false;
 	
 	public BatchCreator(User u) {
@@ -156,10 +156,33 @@ public class BatchCreator {
 
 	/**
 	 * 
-	 * Gauss distribution of runtimes
+	 * Gauss distribution of runtimes with average disparity
 	 * 
 	 * */
 	private void setGaussRuntime(Job job) {
+		double t_run = (double)job.get(Job.RUN_TIME);
+		
+		double mean = t_run * 3; // mean is middle of the runtime
+		double standardDeviation = t_run * 7; // 95% of values hit the [0,t_run] interval
+		
+		double gaussRandom = StatisticalMathHelper.normalDistributedSD(mean, standardDeviation);
+		gaussRandom = Math.min(gaussRandom, t_run * 20);//limit upper requested time, job abortion isn't modelled yet
+		gaussRandom = Math.max(gaussRandom, t_run);//limit lower requested time, job abortion isn't modelled yet
+
+		//System.out.println(t_run+" -> N["+mean+","+standardDeviation+"] = "+(long)gaussRandom);
+		
+		job.set(Job.RUN_TIME, (long)t_run);
+		job.set(Job.TIME_REQUESTED, (long)gaussRandom);
+		/*job.set(Job.RUN_TIME, (long)(t_run/2d));
+		job.set(Job.TIME_REQUESTED, (long)(t_run/2d));*/
+	}
+
+	/**
+	 * 
+	 * Gauss distribution of runtimes with old simplified model
+	 * 
+	 * */
+	private void setGaussRuntimeOld(Job job) {
 		double t_run = (double)job.get(Job.TIME_REQUESTED);
 		
 		double mean = t_run/2d; // mean is middle of the runtime

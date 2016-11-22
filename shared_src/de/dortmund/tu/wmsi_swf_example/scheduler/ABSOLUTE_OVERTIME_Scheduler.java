@@ -98,7 +98,7 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 				reservation_job = null;
 				return t_now;
 			} else {
-				SimulationInterface.log("backfilling jobs from unsorted queue that end before: " + reservation_begin);
+				SimulationInterface.log("backfilling jobs from queue that end before: " + reservation_begin);
 				for (Job job : queue) {
 					if (schedule.isFitToSchedule(job) && isFinishedBeforeReservation(job, t_now)) {
 						SimulationInterface.log("backfilled job: " + job.getJobId() + " running from " + t_now + " to " + (t_now + job.getRunDuration()));
