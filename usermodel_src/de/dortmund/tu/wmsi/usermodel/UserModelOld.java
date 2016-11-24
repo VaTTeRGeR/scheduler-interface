@@ -20,7 +20,7 @@ public class UserModelOld {
 				"ctc_bpf_config/simulation_overtime_easy_absolute.properties"
 		);
 		
-		/*runsim(RUNS , "mira_abs_overtime_easy",
+		runsim(RUNS , "mira_abs_overtime_easy",
 				"mira_bpf_config/simulation_easy_avg.properties",
 				"mira_bpf_config/simulation_overtime_easy_absolute.properties"
 		);
@@ -28,7 +28,7 @@ public class UserModelOld {
 		runsim(RUNS , "kth_abs_overtime_easy",
 				"kth_bpf_config/simulation_easy_avg.properties",
 				"kth_bpf_config/simulation_overtime_easy_absolute.properties"
-		);*/
+		);
 	}
 	
 	private static void runsim(int n, String appendix, String ...configs) {
