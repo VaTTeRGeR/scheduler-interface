@@ -32,8 +32,8 @@ public class UserModelOld {
 	}
 	
 	private static void runsim(int n, String appendix, String ...configs) {
-		//StatisticalMathHelper.setUserAccepteableWaitTimeParameters(1.70, 29.5 * 60);
-		StatisticalMathHelper.setUserAccepteableWaitTimeParameters(2.28, 215.75 * 60); // .75 quantile setting
+		StatisticalMathHelper.setUserAccepteableWaitTimeParameters(1.70, 29.5 * 60);
+		//StatisticalMathHelper.setUserAccepteableWaitTimeParameters(2.28, 215.75 * 60); // .75 quantile setting
 		//StatisticalMathHelper.setUserAccepteableWaitTimeParameters(1.14, -166.19 * 60);
 
 		for (int i = 0; i < configs.length; i++) {

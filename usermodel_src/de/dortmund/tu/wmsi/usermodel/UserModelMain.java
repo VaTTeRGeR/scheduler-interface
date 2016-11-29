@@ -6,6 +6,7 @@ import de.dortmund.tu.wmsi.SimulationInterface;
 import de.dortmund.tu.wmsi.usermodel.model.BatchCreator;
 import de.dortmund.tu.wmsi.usermodel.model.userestimate.EstimateSampler;
 import de.dortmund.tu.wmsi.usermodel.model.userestimate.ProgressiveEstimateSampler;
+import de.dortmund.tu.wmsi.usermodel.util.StatisticalMathHelper;
 import de.dortmund.tu.wmsi_swf_example.logger.AVGWTLogger;
 
 public class UserModelMain {
@@ -74,7 +75,7 @@ public class UserModelMain {
 	}
 	
 	private static void runsim(int n, String appendix, String ...configs) {
-		//StatisticalMathHelper.setUserAccepteableWaitTimeParameters(c1, c2);
+		StatisticalMathHelper.setUserAccepteableWaitTimeParameters(1.70, 29.5 * 60);
 
 		for (int i = 0; i < configs.length; i++) {
 			SimulationInterface si = SimulationInterface.instance();
