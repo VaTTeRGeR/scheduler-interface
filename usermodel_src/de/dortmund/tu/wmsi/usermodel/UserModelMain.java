@@ -12,7 +12,7 @@ public class UserModelMain {
 
 	private static final boolean doAVG = true;
 	private static final boolean doSWF = false;
-	private static final int numSimAVG = 1;
+	private static final int numSimAVG = 10;
 	private static final int numSimSWF = 5;
 	
 	public static void main(String[] args) {
@@ -23,14 +23,13 @@ public class UserModelMain {
 		if(doAVG) {
 			runsim(numSimAVG, "mira_all_avg",
 					"mira_bpf_config/simulation_batch_priority_fair_estimate_avg.properties",
-					"mira_bpf_config/simulation_batch_priority_fair_estimate_uq_avg.properties",
+					//"mira_bpf_config/simulation_batch_priority_fair_estimate_uq_avg.properties",
 					"mira_bpf_config/simulation_batch_priority_fair_estimate_bfo_avg.properties",
-					"mira_bpf_config/simulation_batch_priority_fair_bfo_avg.properties",
-					"mira_bpf_config/simulation_batch_priority_fair_avg.properties",
-					"mira_bpf_config/simulation_easy_estimate_avg.properties",
-					"mira_bpf_config/simulation_easy_avg.properties",
-					"mira_bpf_config/simulation_easy_avg.properties",
-					"mira_bpf_config/simulation_overtime_easy_absolute.properties"
+					//"mira_bpf_config/simulation_batch_priority_fair_bfo_avg.properties",
+					//"mira_bpf_config/simulation_batch_priority_fair_avg.properties",
+					"mira_bpf_config/simulation_easy_estimate_avg.properties"//,
+					//"mira_bpf_config/simulation_easy_avg.properties",
+					//"mira_bpf_config/simulation_overtime_easy_absolute.properties"
 					);
 //			
 //			runsim(numSimAVG, "lanl_avg",
