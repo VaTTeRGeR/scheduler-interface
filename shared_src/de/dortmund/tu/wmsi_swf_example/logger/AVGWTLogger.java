@@ -57,7 +57,7 @@ public class AVGWTLogger implements Logger {
 		userToJobs = new HashMap<Long, ArrayList<Job>>();
 		userids = new ArrayList<Long>(512);
 		waitTimes = new ArrayList<Long>(512000);
-		t_threshold = 20*60;
+		t_threshold = 60*60;
 		num_jobs_finished = 0;
 	}
 	

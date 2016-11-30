@@ -61,7 +61,7 @@ public class BATCH_PRIORITY_FAIR_ESTIMATE_Scheduler implements Scheduler {
 		idToUserTimeAccuracySamplesList = new HashMap<Long, ArrayList<Double>>();
 		t_reservation_begin = Long.MIN_VALUE;
 		reservation_job = null;
-		t_threshold = 20 * 60;
+		t_threshold = 60 * 60;
 		if(res_max == -1)
 			throw new IllegalStateException("BATCH_PRIORITY_Scheduler has no resource count configured");
 		else if(res_max < 0)
