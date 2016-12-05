@@ -11,6 +11,7 @@ import de.dortmund.tu.wmsi.job.Job;
 import de.dortmund.tu.wmsi.scheduler.Schedule;
 import de.dortmund.tu.wmsi.scheduler.Schedule.JobFinishEntry;
 import de.dortmund.tu.wmsi.scheduler.Scheduler;
+import de.dortmund.tu.wmsi.usermodel.model.userestimate.ProgressiveEstimateSampler;
 import de.dortmund.tu.wmsi.util.PropertiesHandler;
 import de.dortmund.tu.wmsi_swf_example.scheduler.comparators.JobExceedWaitTimeComparatorAbsolute;
 
@@ -29,6 +30,8 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 	
 	private long t_last_execution = Long.MIN_VALUE;
 	
+	private ProgressiveEstimateSampler estimateSampler;
+	
 	@Override
 	public void initialize() {
 		t_last_execution = Long.MIN_VALUE;
@@ -42,6 +45,7 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 		queue = new LinkedList<Job>();
 		schedule = new Schedule(res_max);
 		comparator = new JobExceedWaitTimeComparatorAbsolute();
+		estimateSampler = new ProgressiveEstimateSampler();
 	}
 
 	@Override
@@ -115,10 +119,15 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 		if(!schedule.isEmpty() && schedule.peekNextFinishedJobEntry(t_target) != null) {
 
 			JobFinishEntry jfe = schedule.pollNextFinishedJobEntry(t_target);
+			
+			Job job = jfe.job;
+			estimateSampler.addJobSample(job.get(Job.RUN_TIME), job.get(Job.TIME_REQUESTED));
+			
 			SimulationInterface.instance().submitEvent(new JobFinishedEvent(jfe.t_end, jfe.job));
 			
 			SimulationInterface.log("finished job "+jfe.job.getJobId()+" at "+jfe.t_end);
 			SimulationInterface.log("freeing "+jfe.job.getResourcesRequested()+" resources");
+			
 			
 			return (t_now = jfe.t_end);
 		}
@@ -130,7 +139,7 @@ public class ABSOLUTE_OVERTIME_Scheduler implements Scheduler {
 	}
 	
 	private boolean isFinishedBeforeReservation(Job job, long t_now) {
-		return job.getRunDuration() + t_now < reservation_begin;
+		return estimateSampler.averageRuntimeByEstimate(job.get(Job.TIME_REQUESTED)) + t_now < reservation_begin;
 	}
 
 	@Override

@@ -85,8 +85,7 @@ public class EASY_ESTIMATE_SAMPLED_Scheduler implements Scheduler {
 			
 			} else if(!queue.isEmpty()) {
 				for (Job job : queue) {
-					long runtimeEstimate = estimateSampler.averageRuntimeByEstimate(job.get(Job.TIME_REQUESTED));
-					if (schedule.isFitToSchedule(job) && ((long)(runtimeEstimate * 1.00)) + t_now < reservation_begin) {
+					if (schedule.isFitToSchedule(job) && isFinishedBeforeReservation(job, t_now)) {
 						schedule.addToSchedule(job, t_now);
 
 						SimulationInterface.instance().submitEvent(new JobStartedEvent(t_now, job));
@@ -112,6 +111,10 @@ public class EASY_ESTIMATE_SAMPLED_Scheduler implements Scheduler {
 		
 		// nothing happenend
 		return t_target;
+	}
+
+	private boolean isFinishedBeforeReservation(Job job, long t_now) {
+		return estimateSampler.averageRuntimeByEstimate(job.get(Job.TIME_REQUESTED)) + t_now < reservation_begin;
 	}
 	
 	@Override

@@ -20,7 +20,7 @@ public class UserModelMain {
 		}
 		
 		if(doAVG) {
-			/*runsim(numSimAVG, "hpc2n_avg",
+			runsim(numSimAVG, "hpc2n_avg",
 					"hpc2n_bpf_config/simulation_batch_priority_fair_estimate_bfo_avg.properties",
 					"hpc2n_bpf_config/simulation_easy_es_avg.properties",
 					"hpc2n_bpf_config/simulation_overtime_easy_absolute.properties"
@@ -28,19 +28,19 @@ public class UserModelMain {
 			
 			runsim(numSimAVG, "lanl_avg",
 					"lanl_bpf_config/simulation_batch_priority_fair_estimate_bfo_avg.properties",
-					"lanl_bpf_config/simulation_easy_estimate_avg.properties",
+					"lanl_bpf_config/simulation_easy_es_avg.properties",
 					"lanl_bpf_config/simulation_overtime_easy_absolute.properties"
-					);*/
+					);
 			
 			runsim(numSimAVG, "ctc_avg",
 					"ctc_bpf_config/simulation_batch_priority_fair_estimate_bfo_avg.properties",
-					"ctc_bpf_config/simulation_easy_estimate_avg.properties",
+					"ctc_bpf_config/simulation_easy_es_avg.properties",
 					"ctc_bpf_config/simulation_overtime_easy_absolute.properties"
 					);
 					
 			runsim(numSimAVG, "kth_avg",
 					"kth_bpf_config/simulation_batch_priority_fair_estimate_bfo_avg.properties",
-					"kth_bpf_config/simulation_easy_estimate_avg.properties",
+					"kth_bpf_config/simulation_easy_es_avg.properties",
 					"kth_bpf_config/simulation_overtime_easy_absolute.properties"
 					);
 		}

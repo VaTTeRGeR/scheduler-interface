@@ -31,7 +31,7 @@ public class ProgressiveEstimateSampler {
 	
 		//System.out.println(t_run+"/"+t_estimate);
 		
-		if(t_run>t_estimate) throw new IllegalStateException("runtime shouldn't be bigger than the estimate!" + t_run + "/" + t_estimate);
+		if(t_run > t_estimate) throw new IllegalStateException("runtime shouldn't be bigger than the estimate!" + t_run + "/" + t_estimate);
 		
 		if(estimateToRuntimeSamples.containsKey(t_estimate)) {
 			
