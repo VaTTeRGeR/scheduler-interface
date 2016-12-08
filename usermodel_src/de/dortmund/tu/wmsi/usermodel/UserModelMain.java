@@ -11,7 +11,7 @@ public class UserModelMain {
 
 	private static final boolean doAVG = true;
 	private static final boolean doSWF = false;
-	private static final int numSimAVG = 10;
+	private static final int numSimAVG = 15;
 	private static final int numSimSWF = 5;
 	
 	public static void main(String[] args) {
@@ -42,6 +42,12 @@ public class UserModelMain {
 					"kth_bpf_config/simulation_batch_priority_fair_estimate_bfo_avg.properties",
 					"kth_bpf_config/simulation_easy_es_avg.properties",
 					"kth_bpf_config/simulation_overtime_easy_absolute.properties"
+					);
+
+			runsim(numSimAVG, "sdsc_avg",
+					"sdsc_bpf_config/simulation_batch_priority_fair_estimate_bfo_avg.properties",
+					"sdsc_bpf_config/simulation_easy_es_avg.properties",
+					"sdsc_bpf_config/simulation_overtime_easy_absolute.properties"
 					);
 		}
 		

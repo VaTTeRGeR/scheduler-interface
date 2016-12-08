@@ -74,6 +74,11 @@ public class BATCH_PRIORITY_FAIR_ESTIMATE_SAMPLED_BACKFILL_ONLY_Scheduler implem
 		for (Job job : queueJobPrioSorted) {
 			job.set(Job.WAIT_TIME, t_now - job.get(Job.SUBMIT_TIME));
 		}
+		
+		for (Job job : queueJobFCFSSorted) {
+			job.set(Job.WAIT_TIME, t_now - job.get(Job.SUBMIT_TIME));
+		}
+		
 		if(reservation_job != null) {
 			reservation_job.set(Job.WAIT_TIME, t_now - reservation_job.get(Job.SUBMIT_TIME));
 		}
