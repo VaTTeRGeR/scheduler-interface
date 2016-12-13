@@ -1,0 +1,38 @@
+Jobs in queue QUEUE:		JQ_1...JQ_N
+Job in reserved position:	JR
+Reservation time:			TR
+ESTIMATESAMPLER:			ES (mapping of USERTIME samples to average RUNTIME in quantization-buckets)
+
+ESTIMATESAMPLER.ADD_SAMPLE(USERTIME, RUNTIME) adds a sample to the usertime -> avg runtime mapping
+ESTIMATESAMPLER.AVG_RUNTIME(USERTIME) returns the average runtime of jobs with similar USERTIME
+
+simulateUntil(T_NOW, T_TARGET)
+	
+	update waiting times of JQ_1...JQ_N and JR
+	
+	if QUEUE not empty OR JR not NULL then
+		if JR not NULL AND JR can be scheduled then
+			schedule JR
+			set JR to NULL
+			set TR to MIN VALUE
+
+			return T_NOW
+		
+		else if JR is NULL then
+			set JR to head of QUEUE
+			remove head of QUEUE
+			set TR to first time JR fits to schedule
+
+			return T_NOW
+			
+		else if QUEUE not empty then
+			for JQ_I = JQ_1...JQ_N do
+				if JQ_I can be scheduled AND JQ_I.SCHEDULETIME + JQ_I.WAITTIME + ES.AVG_RUNTIME(JQ_I.USERTIME) < TR then
+					remove JQ_I from QUEUE and add to schedule
+
+					return T_NOW
+	
+	if schedule is not empty AND a job JOB finishes before T_TARGET then
+		ES.ADD_SAMPLE(JOB.USERTIME, JOB.RUNTIME)
+		
+		return JOB.SCHEDULETIME + JOB.WAITTIME + JOB.RUNTIME

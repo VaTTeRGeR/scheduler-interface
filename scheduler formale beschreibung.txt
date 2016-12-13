@@ -1,0 +1,13 @@
+COMMON: RUNTIME ESTIMATES
+	-RUNTIME of a to be backfilled job is estimated by sampling runtimes of previous jobs of a similar estimate and taking the average
+
+
+EASY ESTIMATE SAMPLED
+	-FCFS with backfill as long as it is estimated that it does not delay the reserved job (first job that cannot be FCFS-queued anymore)
+
+LONGEST UNACCEPTABLE WAITING TIME FIRST
+	-EASY with queue sorted by LUAWT
+
+BATCH PRIORITY BACKFILL
+	-EASY with backfill sorted by user-batch affiliation (up to a threshold of 60 minutes, then it's appended)
+	
